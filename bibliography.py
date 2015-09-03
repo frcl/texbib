@@ -38,11 +38,11 @@ class Bibliography(list):
 
 
     def merge_from_file(self, filename):
-        try:
+        #try:
             with open(filename) as f:
-                self.extend(bibtexparser.load(f).get_entries())
-        except:
-            raise BibCodeError
+                self.extend(bibtexparser.load(f).get_entry_list())
+        #except:
+        #    raise BibCodeError
 
     def dump(self, path):
         bib_db = BibDatabase()

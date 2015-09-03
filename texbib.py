@@ -3,6 +3,34 @@ import argparse
 
 from bibliography import *
 
+def main():
+    args = argparse.ArgumentParser()
+
+    args.add_argument('command')
+    args.add_argument('args', nargs='*')
+
+    args = args.parse_args()
+
+    cmd = args.command
+    cmd_args = args.args
+    cmd_parser = CmdParser()
+
+    if hasattr(cmd_parser, cmd):
+        cmd_func = getattr(cmd_parser, cmd)
+#        try:
+        cmd_func(*cmd_args)
+#        except TypeError:
+#            fail('wrong number of arguments')
+    else:
+        fail('unknown command')
+
+def tell(msg):
+    print('texbib: {}'.format(msg))
+
+def fail(msg):
+    print('texbib: {}'.format(msg))
+    quit()
+
 class CmdParser(object):
     def add(self, *filenames):
         self.addto('all', *filenames)
@@ -41,9 +69,8 @@ class CmdParser(object):
                 try:
                     bib.merge_from_file(fn)
                 except BibCodeError:
-                    tell("invalid Bibtex Code \
-                            in file '{}'".format(filename))
-        bib.store(bibname)
+                    tell("invalid Bibtex Code in file '{}'".format(fn))
+        bib.store()
 
     def rmfrom(self, bibname, identifyer):
         pass
@@ -53,35 +80,6 @@ class CmdParser(object):
 
     def chcont(self, identifyer, attribute, value):
         pass
-
-def main():
-    args = argparse.ArgumentParser()
-
-    args.add_argument('command')
-    args.add_argument('args', nargs='*')
-
-    args = args.parse_args()
-
-    cmd = args.command
-    cmd_args = args.args
-    cmd_parser = CmdParser()
-
-    if hasattr(cmd_parser, cmd):
-        cmd_func = getattr(cmd_parser, cmd)
-        try:
-            cmd_func(*cmd_args)
-        except TypeError:
-            fail('wrong number of arguments')
-    else:
-        fail('unknown command')
-
-
-def tell(msg):
-    print('texbib: {}'.format(msg))
-
-def fail(msg):
-    print('texbib: {}'.format(msg))
-    quit()
 
 if __name__ == '__main__':
     main()
