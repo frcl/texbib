@@ -25,7 +25,7 @@ class CmdParser(object):
         bib = Bibliography()
         bib.name = bibname
         if not os.path.exists(bib.path):
-            fail("bib '{}' already exists".format(bibname))
+            fail("bib '{}' does not exist".format(bibname))
         os.remove(bib.path)
 
     def addto(self, bibname, *filenames):
