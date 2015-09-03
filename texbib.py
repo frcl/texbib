@@ -17,10 +17,10 @@ def main():
 
     if hasattr(cmd_parser, cmd):
         cmd_func = getattr(cmd_parser, cmd)
-#        try:
+        try:
         cmd_func(*cmd_args)
-#        except TypeError:
-#            fail('wrong number of arguments')
+        except TypeError:
+            fail('wrong number of arguments')
     else:
         fail('unknown command')
 
