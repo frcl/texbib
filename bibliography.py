@@ -3,6 +3,7 @@ import os, re, json
 import bibtexparser
 from bibtexparser.bibdatabase import BibDatabase
 
+
 class DatabaseError(NameError):
     pass
 
@@ -28,14 +29,13 @@ class Bibliography(dict):
             raise BibNameError
         try:
             with open(self.path, 'r') as f:
-                self.update(json.loads(f.read()))
+                self.update(json.load(f))
         except:
             raise DatabaseError
     
     @property
     def path(self):
         return self._path.format(self.name)
-
 
     def merge_from_file(self, filename):
         try:
@@ -49,7 +49,7 @@ class Bibliography(dict):
         bib_db.entries = list(self.values())
         
         with open(path,'w') as f:
-            f.write(bibtexparser.dumps(bib_db))
+            bibtexparser.dump(bib_db,f)
 
     def merge(self, bib):
         self.extend(bib)
