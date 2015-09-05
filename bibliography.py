@@ -12,7 +12,7 @@ class BibNameError(NameError):
 class BibCodeError(Exception):
     pass
 
-class Bibliography(list):
+class Bibliography(dict):
 
     def __init__(self, bibname=None):
         self.name = bibname
@@ -28,7 +28,7 @@ class Bibliography(list):
             raise BibNameError
         try:
             with open(self.path, 'r') as f:
-                self = json.loads(f.read())
+                self.update(json.loads(f.read()))
         except:
             raise DatabaseError
     
@@ -40,13 +40,13 @@ class Bibliography(list):
     def merge_from_file(self, filename):
         try:
             with open(filename) as f:
-                self.extend(bibtexparser.load(f).get_entry_list())
+                self.update(bibtexparser.load(f).get_entry_dict())
         except:
             raise BibCodeError
 
     def dump(self, path):
         bib_db = BibDatabase()
-        bib_db.entries = self
+        bib_db.entries = list(self.values())
         
         with open(path,'w') as f:
             f.write(bibtexparser.dumps(bib_db))
