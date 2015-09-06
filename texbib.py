@@ -49,11 +49,8 @@ class CmdParser(object):
         bib.dump(path)
 
     def mkbib(self, bibname):
-        bib = Bibliography()
-        bib.name = bibname
-        if os.path.exists(bib.path):
-            fail("bib '{}' already exists".format(bibname))
-        bib.store()
+        with Bibliography(bibname) as bib:
+            pass
 
     def rmbib(self, bibname):
         bib = Bibliography()
@@ -77,7 +74,6 @@ class CmdParser(object):
                 except BibCodeError:
                     tell( \
                     "invalid Bibtex Code in file '{}'".format(fn))
-        bib.store()
 
     def rmfrom(self, bibname, *identifyer):
         try:
@@ -87,11 +83,17 @@ class CmdParser(object):
 
         for Id in identifyer:
             try:
-                del bib[Id]
+                bib.del_item(Id)
             except KeyError:
                 fail( \
                 "No item with ID '{}' in {}".format(Id,bibname))
-        bib.store()
+
+    def tidyup(self, bibname='all'):
+        try:
+            bib = Bibliography(bibname)
+        except BibNameError:
+            fail("bib '{}' does not exist".format(bibname))
+        bib.reorganize()
 
     def chid(self, identifyer, new_identifyer):
         pass
@@ -109,5 +111,6 @@ if __name__ == '__main__':
 #rmbib	remove the bibligraphy named BIB
 #addto	add BibTex content from FILE to your bibliogrphy named BIB
 #rmfrom	remove BibTex item ID from your bibliogrphy named BIB
+#tidy   tidy up database
 #chid	change the identifyer of ID to NEW
 #chcont	change the attribute ATTR of ID to NEW
