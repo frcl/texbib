@@ -1,8 +1,11 @@
 import os, re, json
 import dbm.gnu as gdbm
-
-import bibtexparser
-from bibtexparser.bibdatabase import BibDatabase
+try:
+    from bibtexparser import load, dump
+    from bibtexparser.bibdatabase import BibDatabase
+except ImportError:
+    execfile(os.path.join(os.environ['BIBTEXPARSERDIR'], '__init__.py'))
+    BibDatabase = bibdatabase.BibDatabase
 
 
 class DatabaseError(NameError):
@@ -35,7 +38,6 @@ class Bibliography(object):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        #self.db.sync()
         self.db.close()
     
     @property
@@ -45,7 +47,7 @@ class Bibliography(object):
     def merge_from_file(self, filename):
         try:
             with open(filename) as f:
-                entries = bibtexparser.load(f).get_entry_dict()
+                entries = load(f).get_entry_dict()
         except:
             raise BibCodeError
 
@@ -54,10 +56,12 @@ class Bibliography(object):
 
     def dump(self, path):
         bib_db = BibDatabase()
-        bib_db.entries = [json.loads(self.db[k].decode('utf-8')) for k in self.db.keys()]
+        bib_db.entries = [json.loads(self.db[k].decode('utf-8'))\
+                for k in self.db.keys()]
+        # dbm strores bytes only, so entries have to be decoded
 
         with open(path,'w') as f:
-            bibtexparser.dump(bib_db,f)
+            dump(bib_db,f)
 
     def reorganize(self):
         self.db.reorganize()
