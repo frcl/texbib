@@ -3,7 +3,7 @@ import argparse
 
 from bibliography import *
 
-def main():
+def _main():
     args = argparse.ArgumentParser()
 
     args.add_argument('command')
@@ -13,25 +13,29 @@ def main():
 
     cmd = args.command
     cmd_args = args.args
-    cmd_parser = CmdParser()
+    cmd_parser = _CmdParser()
 
     if hasattr(cmd_parser, cmd):
         cmd_func = getattr(cmd_parser, cmd)
         try:
             cmd_func(*cmd_args)
         except TypeError:
-            fail('wrong number of arguments')
+            _fail('wrong number of arguments')
+        except BibNameError:
+            _fail('unknown bibname')
+        except DatabaseError:
+            _fail('database currupt')
     else:
-        fail('unknown command')
+        _fail('unknown command')
 
-def tell(msg):
+def _tell(msg):
     print('texbib: {}'.format(msg))
 
-def fail(msg):
+def _fail(msg):
     print('texbib: {}'.format(msg))
     quit()
 
-class CmdParser(object):
+class _CmdParser(object):
     def add(self, *filenames):
         self.addto('all', *filenames)
 
@@ -40,60 +44,55 @@ class CmdParser(object):
 
     def dump(self, bibname='all', directory='.'):
         if not os.path.exists(directory):
-            fail("'{}' is not a directory".format(directory))
-        try:
-            bib = Bibliography(bibname)
-        except BibNameError:
-            fail("bib '{}' does not exist".format(bibname))
-        path = os.path.join(directory,'{}.bib'.format(bibname))
-        bib.dump(path)
+            _fail("'{}' is not a directory".format(directory))
+        with Bibliography(bibname) as bib:
+            path = os.path.join(
+                    directory,'{}.bib'.format(bibname))
+            with open(path,'w') as f:
+                f.write(bib.bibtex())
+
+    def show(self, bibname):
+        with Bibliography(bibname) as bib:
+            print(bib)
 
     def mkbib(self, bibname):
-        with Bibliography(bibname) as bib:
+        with Bibliography(bibname,mode='m') as bib:
             pass
 
     def rmbib(self, bibname):
-        bib = Bibliography()
-        bib.name = bibname
-        if not os.path.exists(bib.path):
-            fail("bib '{}' does not exist".format(bibname))
-        os.remove(bib.path)
+        with Bibliography(bibname) as bib:
+            os.remove(bib.path)
 
     def addto(self, bibname, *filenames):
-        try:
-            bib = Bibliography(bibname)
-        except BibNameError:
-            fail("bib '{}' does not exist".format(bibname))
-
-        for fn in list(filenames):
-            if not os.path.exists(fn):
-                tell("file '{}' not in directory".format(fn))
-            else:
-                try:
-                    bib.merge_from_file(fn)
-                except BibCodeError:
-                    tell( \
-                    "invalid Bibtex Code in file '{}'".format(fn))
+        with Bibliography(bibname) as bib:
+            for fn in list(filenames):
+                if os.path.exists(fn):
+                    try:
+                        with open(fn,'r') as f:
+                            bib.update(f.read())
+                    except BibCodeError:
+                        _tell(
+                        "invalid Bibtex in file '{}'".format(fn))
+#                    except Exception:
+#                        _tell(
+#                        "can not open file '{}'".format(fn))
+                else:
+                    _tell(
+                    "file '{}' not in directory".format(fn))
 
     def rmfrom(self, bibname, *identifyer):
-        try:
-            bib = Bibliography(bibname)
-        except BibNameError:
-            fail("bib '{}' does not exist".format(bibname))
+        with Bibliography(bibname) as bib:
+            for Id in list(identifyer):
+                try:
+                    del bib[Id]
+                except BibKeyError:
+                    _fail(
+                    "No item with ID '{}' in {}".format(
+                            Id,bibname))
 
-        for Id in identifyer:
-            try:
-                bib.del_item(Id)
-            except KeyError:
-                fail( \
-                "No item with ID '{}' in {}".format(Id,bibname))
-
-    def tidyup(self, bibname='all'):
-        try:
-            bib = Bibliography(bibname)
-        except BibNameError:
-            fail("bib '{}' does not exist".format(bibname))
-        bib.reorganize()
+    def cleanup(self, bibname='all'):
+        with Bibliography(bibname) as bib:
+            bib.cleanup()
 
     def chid(self, identifyer, new_identifyer):
         pass
@@ -102,15 +101,5 @@ class CmdParser(object):
         pass
 
 if __name__ == '__main__':
-    main()
+    _main()
 
-#add	add a BibTex content from FILE to your libary
-#rm	        remove the item ID from your libary
-#dump	create a Bibtex file from BIB in the current directory
-#mkbib	create a bibligraphy named NAME
-#rmbib	remove the bibligraphy named BIB
-#addto	add BibTex content from FILE to your bibliogrphy named BIB
-#rmfrom	remove BibTex item ID from your bibliogrphy named BIB
-#tidy   tidy up database
-#chid	change the identifyer of ID to NEW
-#chcont	change the attribute ATTR of ID to NEW
