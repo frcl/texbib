@@ -68,12 +68,12 @@ class Bibliography(object):
 
     def __len__(self):
         return len(self.ids())
+
+    def __iter__(self):
+        return iter(self.ids())
     
     def __str__(self):
-        items = []
-        for Id in self.ids():
-            items.append(str(self[Id]))
-        return '\n'.join(items)
+        return '\n'.join([str(self[key]) for key in self])
 
     @property
     def path(self):
