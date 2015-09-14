@@ -7,10 +7,6 @@ except ImportError:
     execfile(os.path.join(os.environ['BIBTEXPARSERDIR'], '__init__.py'))
     BibDatabase = bibdatabase.BibDatabase
 
-
-class DatabaseError(Exception):
-    pass
-
 class BibNameError(NameError):
     pass
 
@@ -18,6 +14,9 @@ class BibKeyError(KeyError):
     pass
 
 class BibCodeError(Exception):
+    pass
+
+class DatabaseError(Exception):
     pass
 
 class Bibliography(object):
@@ -75,6 +74,9 @@ class Bibliography(object):
     def __str__(self):
         return '\n'.join([str(self[key]) for key in self])
 
+    def close(self):
+        self.db.close()
+
     @property
     def path(self):
         return self._path.format(self.name)
@@ -91,9 +93,12 @@ class Bibliography(object):
     def ids(self):
         return self.db.keys()
 
+    def values(self):
+        return [self[k] for k in self.ids()]
+
     def bibtex(self):
         bib_db = BibDatabase()
-        bib_db.entries = [self[k] for k in self.ids()]
+        bib_db.entries = self.values()
         return dumps(bib_db)
 
     def cleanup(self, mode=None):
