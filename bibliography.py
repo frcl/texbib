@@ -120,7 +120,7 @@ class BibItem(dict):
                 '{}, {}'.format(self['author'],
                 self['year']),
                 self['title']]
-        return '\n\t'.join(info)
+        return '\n    '.join(info)
 
     def __repr__(self):
         return json.dumps(self)
