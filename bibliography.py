@@ -19,16 +19,30 @@ class BibCodeError(Exception):
 class DatabaseError(Exception):
     pass
 
+class Coloring:
+    def __init__(self):
+        self.colors = {'ID'     : '\033[95m',
+                       'blue'   : '\033[94m',
+                       'green'  : '\033[92m',
+                       'HL' : '\033[93m' }
+        self.colorend = '\033[0m'
+
+    def color(self, string, color):
+        return self.colors[color] + string + self.colorend
+c=Coloring()
+
 class Bibliography(object):
 
     def __init__(self, bibname=None, mode='o'):
         self.name = bibname
+
         try:
             self.texbibdir = os.environ['TEXBIBDIR']
         except KeyError:
             self.texbibdir = os.path.join(
                     os.environ['HOME'],'.texbib' )
         self._path = os.path.join(self.texbibdir,'{}.gdbm')
+
         if not bibname:
             return
         if not os.path.exists(self._path.format(bibname)):
@@ -116,9 +130,9 @@ class BibItem(dict):
             self.update(json.loads(itembytes.decode('utf-8')))
 
     def __str__(self):
-        info = [self['ID'],
+        info = [c.color(self['ID'],'ID'),
                 '{}, {}'.format(self['author'],
-                self['year']),
+                                self['year']),
                 self['title']]
         return '\n    '.join(info)
 
