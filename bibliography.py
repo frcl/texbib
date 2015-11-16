@@ -111,8 +111,8 @@ class Bibliography(object):
 
     def cleanup(self, mode=None):
         if mode is 'scopus':
-            pass
-            #for key in self.db.keys():
+            pass # TODO: implement deletion of scopus tags
+            #for key in self.db.keys(): 
             #    self.db[key] = BibItem
         self.db.reorganize()
 
@@ -120,7 +120,7 @@ class BibItem(dict):
     def __init__(self, itembytes):
         try:
             self.update(itembytes)
-        except:
+        except: # TODO: find appropriate exception
             self.update(json.loads(itembytes.decode('utf-8')))
 
     def __str__(self):
