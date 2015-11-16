@@ -1,11 +1,16 @@
 import os, re, json
 import dbm.gnu as gdbm
+
+from colors import ColoredText as ct
+
 try:
     from bibtexparser import loads, dumps
     from bibtexparser.bibdatabase import BibDatabase
 except ImportError:
-    execfile(os.path.join(os.environ['BIBTEXPARSERDIR'], '__init__.py'))
-    BibDatabase = bibdatabase.BibDatabase
+    with open(os.path.join(os.environ['BIBTEXPARSERDIR'], '__init__.py')) as bibtexparserfile:
+        exec(bibtexparserfile.read())
+        BibDatabase = bibdatabase.BibDatabase
+
 
 class BibNameError(NameError):
     pass
@@ -19,17 +24,6 @@ class BibCodeError(Exception):
 class DatabaseError(Exception):
     pass
 
-class Coloring:
-    def __init__(self):
-        self.colors = {'ID'     : '\033[95m',
-                       'blue'   : '\033[94m',
-                       'green'  : '\033[92m',
-                       'HL' : '\033[93m' }
-        self.colorend = '\033[0m'
-
-    def color(self, string, color):
-        return self.colors[color] + string + self.colorend
-c=Coloring()
 
 class Bibliography(object):
 
@@ -130,9 +124,9 @@ class BibItem(dict):
             self.update(json.loads(itembytes.decode('utf-8')))
 
     def __str__(self):
-        info = [c.color(self['ID'],'ID'),
-                '{}, {}'.format(self['author'],
-                                self['year']),
+        info = [str(ct(self['ID'],'ID')),
+                '{} ({})'.format(self['author'],
+                                 self['year']),
                 self['title']]
         return '\n    '.join(info)
 
