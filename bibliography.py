@@ -7,9 +7,11 @@ try:
     from bibtexparser import loads, dumps
     from bibtexparser.bibdatabase import BibDatabase
 except ImportError:
-    with open(os.path.join(os.environ['BIBTEXPARSERDIR'], '__init__.py')) as bibtexparserfile:
-        exec(bibtexparserfile.read())
-        BibDatabase = bibdatabase.BibDatabase
+    import imp
+    bibtexparser = imp.load_source(os.path.join(os.environ['BIBTEXPARSERDIR'], '__init__.py'))
+    loads = bibtexparser.loads
+    dumps = bibtexparser.dumps
+    BibDatabase = bibtexparser.bibdatabase.BibDatabase
 
 
 class BibNameError(NameError):
