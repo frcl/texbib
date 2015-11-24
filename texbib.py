@@ -1,15 +1,12 @@
+#!/bin/env python3.5
+# -*- coding: utf-8 -*-
+
 import os
 import argparse
 
-from bibliography import *
+from texbib.bibliography import *
 
-def _main():
-    args = argparse.ArgumentParser()
-
-    args.add_argument('command')
-    args.add_argument('args', nargs='*')
-
-    args = args.parse_args()
+def _main(args):
 
     cmd = args.command
     cmd_args = args.args
@@ -101,5 +98,10 @@ class _CmdParser(object):
         pass
 
 if __name__ == '__main__':
-    _main()
+    argp = argparse.ArgumentParser()
+
+    argp.add_argument('command')
+    argp.add_argument('args', nargs='*')
+
+    _main(argp.parse_args())
 

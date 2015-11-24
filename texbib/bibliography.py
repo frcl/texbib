@@ -1,7 +1,7 @@
 import os, re, json
 import dbm.gnu as gdbm
 
-from colors import ColoredText as ct
+from .colors import ColoredText as ct
 
 try:
     from bibtexparser import loads, dumps
