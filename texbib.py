@@ -5,16 +5,19 @@ This is the main file of the texbib program. A program that helps you
 to manage your BibTeX references.
 """
 
-import os as os
-import argparse as argparse
+import argparse
 
 from texbib.bibliography import BibNameError, DatabaseError
 from texbib.commands import CmdParser
 
 def tell(msg):
+    """Print a warning message and continue.
+    Used for wranings and if an error is only partial."""
     print('texbib: {}'.format(msg))
 
 def fail(msg):
+    """Print error message and exit.
+    Used if texbib can not continue."""
     print('texbib: {}'.format(msg))
     quit()
 
@@ -39,15 +42,17 @@ def main(args):
 
 if __name__ == '__main__':
     argp = argparse.ArgumentParser(
-            description='Texbib is a program that helps '
-            'you to manage your BibTeX references.')
+        description='Texbib is a program that helps '
+        'you to manage your BibTeX references.')
 
     argp.add_argument('command', help='Texbib command to be executed')
     #choices=('add','addto','show','searchin','rm','rmfrom','mkbib',
     #'rmbib'))
-    argp.add_argument('args', nargs='*',
-            help='arguments for Texbib command, '
-            'number and meaning depends on command')
+
+    argp.add_argument(
+        'args', nargs='*',
+        help='arguments for Texbib command, '
+        'number and meaning depends on command')
 
     main(argp.parse_args())
 

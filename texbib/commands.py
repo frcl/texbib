@@ -1,3 +1,4 @@
+import os as _os
 from .bibliography import *
 
 class CmdParser:
@@ -13,10 +14,10 @@ class CmdParser:
         self.rmfrom('all', *identifyer)
 
     def dump(self, bibname='all', directory='.'):
-        if not os.path.exists(directory):
+        if not _os.path.exists(directory):
             self.fail("'{}' is not a directory".format(directory))
         with Bibliography(bibname) as bib:
-            path = os.path.join(
+            path = _os.path.join(
                     directory, '{}.bib'.format(bibname))
             with open(path,'w') as f:
                 f.write(bib.bibtex())
@@ -31,12 +32,12 @@ class CmdParser:
 
     def rmbib(self, bibname):
         with Bibliography(bibname) as bib:
-            os.remove(bib.path)
+            _os.remove(bib.path)
 
     def addto(self, bibname, *filenames):
         with Bibliography(bibname) as bib:
             for fn in list(filenames):
-                if os.path.exists(fn):
+                if _os.path.exists(fn):
                     try:
                         with open(fn, 'r') as f:
                             bib.update(f.read())

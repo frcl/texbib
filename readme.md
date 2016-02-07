@@ -27,7 +27,7 @@ texbib rm foo2000
 
 You can find out what references are in the bibliography with
 ```sh
-texbib show
+texbib show all
 ```
 
 

@@ -26,7 +26,7 @@ class KnownCodeTests(unittest.TestCase):
             result = parse.dumps(bibdata)
             self.assertEqual(result, bibstring)
 
-class LoadsBadInput(unittest.TestCase):
+class LoadsBadInputTests(unittest.TestCase):
     def testEmpty(self):
         self.assertRaises(ValueError, parse.loads, '@{title={},author={}}')
         self.assertRaises(ValueError, parse.loads, '@ARTICLE{}')
@@ -42,7 +42,7 @@ class LoadsBadInput(unittest.TestCase):
     #       * unknown Type
     #       * wrong commas
 
-class DumpsBadInput(unittest.TestCase):
+class DumpsBadInputTests(unittest.TestCase):
     bibitem = { 
         'ID'   : 'SomeLabel',
         'TYPE' : 'article', 
