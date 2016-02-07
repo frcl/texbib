@@ -1,5 +1,5 @@
 import os as _os
-from .bibliography import *
+from .bibliography import Bibliography, BibCodeError, BibKeyError
 
 class CmdParser:
 
@@ -17,17 +17,16 @@ class CmdParser:
         if not _os.path.exists(directory):
             self.fail("'{}' is not a directory".format(directory))
         with Bibliography(bibname) as bib:
-            path = _os.path.join(
-                    directory, '{}.bib'.format(bibname))
-            with open(path,'w') as f:
-                f.write(bib.bibtex())
+            path = _os.path.join(directory, '{}.bib'.format(bibname))
+            with open(path, 'w') as bibtexfile:
+                bibtexfile.write(bib.bibtex())
 
     def show(self, bibname):
         with Bibliography(bibname) as bib:
             print(bib)
 
     def mkbib(self, bibname):
-        with Bibliography(bibname, mode='m') as bib:
+        with Bibliography(bibname, mode='m') as _:
             pass
 
     def rmbib(self, bibname):
@@ -39,27 +38,26 @@ class CmdParser:
             for fn in list(filenames):
                 if _os.path.exists(fn):
                     try:
-                        with open(fn, 'r') as f:
-                            bib.update(f.read())
+                        with open(fn, 'r') as bibtexfile:
+                            bib.update(bibtexfile.read())
                     except BibCodeError:
                         self.tell(
-                        "invalid Bibtex in file '{}'".format(fn))
+                            "invalid Bibtex in file '{}'".format(fn))
                     except IOError:
                         self.tell(
-                        "can not open file '{}'".format(fn))
+                            "can not open file '{}'".format(fn))
                 else:
                     self.tell(
-                    "file '{}' not in directory".format(fn))
+                        "file '{}' not in directory".format(fn))
 
-    def rmfrom(self, bibname, *identifyer):
+    def rmfrom(self, bibname, *identifyers):
         with Bibliography(bibname) as bib:
-            for Id in list(identifyer):
+            for identifyer in list(identifyers):
                 try:
-                    del bib[Id]
+                    del bib[identifyer]
                 except BibKeyError:
-                    self.fail(
-                    "No item with ID '{}' in {}".format(
-                            Id, bibname))
+                    self.fail("No item with ID '{}' in {}".format(
+                        identifyer, bibname))
 
     def searchin(self, bibname, pattern):
         with Bibliography(bibname) as bib:

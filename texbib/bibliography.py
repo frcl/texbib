@@ -1,17 +1,24 @@
-import os, re, json
-import dbm.gnu as gdbm
-
-from .colors import ColoredText as ct
+import os as _os
+import re as _re
+import json as _json
+import dbm.gnu as _gdbm
 
 try:
-    from bibtexparser import loads, dumps
-    from bibtexparser.bibdatabase import BibDatabase
+    from bibtexparser import loads as _loads
+    from bibtexparser import dumps as _dumps
+    from bibtexparser.bibdatabase import BibDatabase as _BibDatabase
 except ImportError:
-    import imp
-    bibtexparser = imp.load_source('bibtexparser',os.path.join(os.environ['BIBTEXPARSERDIR'], '__init__.py'))
-    loads = bibtexparser.loads
-    dumps = bibtexparser.dumps
-    BibDatabase = bibtexparser.bibdatabase.BibDatabase
+    import importlib.util
+    _spec = importlib.util.spec_from_file_location(
+        'bibtexparser',
+        _os.path.join(_os.environ['BIBTEXPARSERDIR'], '__init__.py'))
+    _btparser = importlib.util.module_from_spec(_spec)
+    _spec.loader.exec_module(_btparser)
+    _loads = _btparser.loads
+    _dumps = _btparser.dumps
+    _BibDatabase = _btparser.bibdatabase.BibDatabase
+
+from .colors import ColoredText as _ct
 
 
 class BibNameError(NameError):
@@ -28,27 +35,32 @@ class DatabaseError(Exception):
 
 
 class Bibliography(object):
+    """A class to manage bibliographic data in a database.
+    It mimics a dictionary with bibtex ids as keys and
+    returns a BibItem, wich is also dinctionary like.
+    It can be seen as a wrapper around dbm.gnu.
+    """
 
     def __init__(self, bibname=None, mode='o'):
         self.name = bibname
 
         try:
-            self.texbibdir = os.environ['TEXBIBDIR']
+            self.texbibdir = _os.environ['TEXBIBDIR']
         except KeyError:
-            self.texbibdir = os.path.join(
-                    os.environ['HOME'],'.texbib' )
-        self._path = os.path.join(self.texbibdir,'{}.gdbm')
+            self.texbibdir = _os.path.join(
+                _os.environ['HOME'], '.texbib')
+        self._path = _os.path.join(self.texbibdir, '{}.gdbm')
 
         if not bibname:
             return
-        if not os.path.exists(self._path.format(bibname)):
+        if not _os.path.exists(self._path.format(bibname)):
             if mode is 'm':
                 pass
             elif mode is 'o':
                 raise BibNameError
 
         try:
-            self.db = gdbm.open(self.path,'c')
+            self.gdb = _gdbm.open(self.path, 'c')
         except Exception:
             raise DatabaseError
 
@@ -56,24 +68,24 @@ class Bibliography(object):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.db.close()
+        self.close()
 
     def __getitem__(self, key):
         try:
-            return BibItem(self.db[key])
+            return BibItem(self.gdb[key])
         except KeyError:
             raise BibKeyError
         except Exception:
             raise DatabaseError
 
     def __setitem__(self, key, bibitem):
-        self.db[key] = repr(bibitem)
+        self.gdb[key] = repr(bibitem)
 
     def __delitem__(self, key):
-        del self.db[key]
+        del self.gdb[key]
 
     def __contains__(self, identifyer):
-        return identifyer in self.db.keys()
+        return identifyer in self.ids()
 
     def __len__(self):
         return len(self.ids())
@@ -85,7 +97,7 @@ class Bibliography(object):
         return '\n'.join([str(self[key]) for key in self])
 
     def close(self):
-        self.db.close()
+        self.gdb.close()
 
     @property
     def path(self):
@@ -93,7 +105,7 @@ class Bibliography(object):
 
     def update(self, bibcode):
         try:
-            entries = loads(bibcode).get_entry_dict()
+            entries = _loads(bibcode).get_entry_dict()
         except Exception:
             raise BibCodeError
 
@@ -101,42 +113,48 @@ class Bibliography(object):
             self[key] = BibItem(entries[key])
 
     def ids(self):
-        return self.db.keys()
+        return self.gdb.keys()
 
     def values(self):
         return [self[k] for k in self.ids()]
 
     def bibtex(self):
-        bib_db = BibDatabase()
+        bib_db = _BibDatabase()
         bib_db.entries = self.values()
-        return dumps(bib_db)
+        return _dumps(bib_db)
 
     def search(self, pattern):
-        for Id in self.ids():
-            if re.match(pattern, Id.decode('utf-8')):
-                yield self[Id]
+        for i in self.ids():
+            if _re.match(pattern, i.decode('utf-8')):
+                yield self[i]
 
     def cleanup(self, mode=None):
         if mode is 'scopus':
             pass #TODO: implement deletion of scopus tags
             #for key in self.db.keys():
             #    self.db[key] = BibItem
-        self.db.reorganize()
+        self.gdb.reorganize()
 
 class BibItem(dict):
-    def __init__(self, itembytes):
-        try:
-            self.update(itembytes)
-        except: #TODO: find appropriate exception
-            self.update(json.loads(itembytes.decode('utf-8')))
+    """A dictionary like class that contains data about a single reference.
+    A bibitem should always have an ID, author, year and title.
+    There can be an arbitrary number other entries.
+    """
+
+    def __init__(self, item):
+        dict.__init__(self)
+        if isinstance(item, dict):
+            self.update(item)
+        elif isinstance(item, bytes):
+            self.update(_json.loads(item.decode('utf-8')))
 
     def __str__(self):
-        info = [str(ct(self['ID'],'ID')),
+        info = [str(_ct(self['ID'], 'ID')),
                 '{} ({})'.format(self['author'],
                                  self['year']),
                 self['title']]
         return '\n    '.join(info)
 
     def __repr__(self):
-        return json.dumps(self)
+        return _json.dumps(self)
 
