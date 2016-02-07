@@ -8,7 +8,7 @@ try:
     from bibtexparser.bibdatabase import BibDatabase
 except ImportError:
     import imp
-    bibtexparser = imp.load_source(os.path.join(os.environ['BIBTEXPARSERDIR'], '__init__.py'))
+    bibtexparser = imp.load_source('bibtexparser',os.path.join(os.environ['BIBTEXPARSERDIR'], '__init__.py'))
     loads = bibtexparser.loads
     dumps = bibtexparser.dumps
     BibDatabase = bibtexparser.bibdatabase.BibDatabase
@@ -80,7 +80,7 @@ class Bibliography(object):
 
     def __iter__(self):
         return iter(self.ids())
-    
+
     def __str__(self):
         return '\n'.join([str(self[key]) for key in self])
 
@@ -111,10 +111,15 @@ class Bibliography(object):
         bib_db.entries = self.values()
         return dumps(bib_db)
 
+    def search(self, pattern):
+        for Id in self.ids():
+            if re.match(pattern, Id.decode('utf-8')):
+                yield self[Id]
+
     def cleanup(self, mode=None):
         if mode is 'scopus':
-            pass # TODO: implement deletion of scopus tags
-            #for key in self.db.keys(): 
+            pass #TODO: implement deletion of scopus tags
+            #for key in self.db.keys():
             #    self.db[key] = BibItem
         self.db.reorganize()
 
@@ -122,7 +127,7 @@ class BibItem(dict):
     def __init__(self, itembytes):
         try:
             self.update(itembytes)
-        except: # TODO: find appropriate exception
+        except: #TODO: find appropriate exception
             self.update(json.loads(itembytes.decode('utf-8')))
 
     def __str__(self):

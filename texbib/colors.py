@@ -1,7 +1,7 @@
 class ColoredText(object):
     """Class that provides coloing of text
     using the mapping in 'ColoredText.colors'
-    by constructor 
+    by constructor
 
         colored = ColoredText(uncolored,color)
 
