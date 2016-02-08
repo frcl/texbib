@@ -7,8 +7,7 @@ to manage your BibTeX references.
 
 import argparse
 
-from texbib.bibliography import BibNameError, DatabaseError
-from texbib.commands import CmdParser
+from texbib import CmdParser, exceptions
 
 def tell(msg):
     """Print a warning message and continue.
@@ -33,9 +32,9 @@ def main(args):
             cmd_func(*cmd_args)
         except TypeError:
             fail('wrong number of arguments')
-        except BibNameError:
+        except exceptions.BibNameError:
             fail('unknown bibname')
-        except DatabaseError:
+        except exceptions.DatabaseError:
             fail('database currupt')
     else:
         fail('unknown command')

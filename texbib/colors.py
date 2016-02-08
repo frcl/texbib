@@ -1,7 +1,7 @@
 """This is the way of texbib to bring colored text on the screen
 """
 
-class ColoredText(object):
+class ColoredText:
     """Class that provides coloing of text
     using the mapping in 'ColoredText.colors'
     by constructor
