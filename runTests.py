@@ -1,3 +1,4 @@
+import unittest
 from texbib.unitTests.parserTests import \
         KnownCodeTests, LoadsBadInputTests, DumpsBadInputTests
 

@@ -14,7 +14,7 @@ You can specify as many files as you want in a singe command.
 The entries in the bibliography can be adressed by the ID that is spacified in the BibTeX file.
 <!--If there was no ID specified the ID are the first four letter of the authors name followed directly by the year of publication.-->
 
-Later you probably want to create a new file with all the references in your document directory. 
+Later you probably want to create a new file with all the references in your document directory.
 Use the handy `dump` command for that.
 ```sh
 texbib dump

@@ -1,3 +1,5 @@
+"""Exceptions raised by texbib in case
+of bibtex or database related errors"""
 
 class BibNameError(NameError):
     pass

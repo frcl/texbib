@@ -36,20 +36,20 @@ class CmdParser:
 
     def addto(self, bibname, *filenames):
         with Bibliography(bibname) as bib:
-            for fn in list(filenames):
-                if _os.path.exists(fn):
+            for filename in list(filenames):
+                if _os.path.exists(filename):
                     try:
-                        with open(fn, 'r') as bibtexfile:
+                        with open(filename, 'r') as bibtexfile:
                             bib.update(bibtexfile.read())
                     except BibCodeError:
                         self.tell(
-                            "invalid Bibtex in file '{}'".format(fn))
+                            "invalid Bibtex in file '{}'".format(filename))
                     except IOError:
                         self.tell(
-                            "can not open file '{}'".format(fn))
+                            "can not open file '{}'".format(filename))
                 else:
                     self.tell(
-                        "file '{}' not in directory".format(fn))
+                        "file '{}' not in directory".format(filename))
 
     def rmfrom(self, bibname, *identifyers):
         with Bibliography(bibname) as bib:

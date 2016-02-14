@@ -9,11 +9,11 @@ class ColoredText:
         colored = ColoredText(uncolored,color)
 
     """
-    colors = {'ID': '\033[95m',   #margenta
-              #'blue' : '\033[94m',
-              #'green' : '\033[92m',
-              'HL': '\033[93m'}      #yellow
-    colorend = '\033[0m'
+    _colors = {'ID': '\033[95m',   #margenta
+               #'blue' : '\033[94m',
+               #'green' : '\033[92m',
+               'HL': '\033[93m'}      #yellow
+    _colorend = '\033[0m'
 
     def __init__(self, text, color):
         self.color = color
@@ -23,4 +23,12 @@ class ColoredText:
         return "'{}'".format(str(self))
 
     def __str__(self):
-        return self.colors[self.color] + self.text + self.colorend
+        return self._colors[self.color] + self.text + self._colorend
+
+    @classmethod
+    def set_colors(cls, color_dict):
+        """Define new set of colors and colorcodes"""
+        if isinstance(color_dict, dict):
+            cls.colors = color_dict
+        else:
+            raise ValueError("Colors must be given in a dic_tionary")

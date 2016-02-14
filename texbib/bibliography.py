@@ -9,18 +9,22 @@ try:
     from bibtexparser.bibdatabase import BibDatabase as _BibDatabase
 except ImportError:
     import importlib.util
-    _spec = importlib.util.spec_from_file_location(
-        'bibtexparser',
-        _os.path.join(_os.environ['BIBTEXPARSERDIR'], '__init__.py'))
-    _btparser = importlib.util.module_from_spec(_spec)
-    _spec.loader.exec_module(_btparser)
-    _loads = _btparser.loads
-    _dumps = _btparser.dumps
-    _BibDatabase = _btparser.bibdatabase.BibDatabase
+    _loads, _dumps, _BibDatabase = \
+            import_from_dir(_os.environ['BIBTEXPARSERDIR'])
 
 from .colors import ColoredText as _ct
 from .exceptions import *
 
+
+def import_from_dir(dir_local):
+    _spec = importlib.util.spec_from_file_location(
+        'bibtexparser',
+        _os.path.join(dir_local, '__init__.py'))
+    _btparser = importlib.util.module_from_spec(_spec)
+    _spec.loader.exec_module(_btparser)
+    return (_btparser.loads,
+            _btparser.dumps,
+            _btparser.bibdatabase.BibDatabase)
 
 class Bibliography(object):
     """A class to manage bibliographic data in a database.
@@ -89,9 +93,11 @@ class Bibliography(object):
 
     @property
     def path(self):
+        """Path to the gdbm file of the bibliography"""
         return self._path.format(self.name)
 
     def update(self, bibcode):
+        """Simular to dict.update."""
         try:
             entries = _loads(bibcode).get_entry_dict()
         except Exception:
@@ -101,22 +107,31 @@ class Bibliography(object):
             self[key] = BibItem(entries[key])
 
     def ids(self):
+        """IDs in the bibliography. Simular to dict.keys."""
         return self.gdb.keys()
 
     def values(self):
+        """Simular to dict.values.
+        Returns list of BibItems."""
         return [self[k] for k in self.ids()]
 
     def bibtex(self):
+        """Returns a single string with the bibtex
+        code of all items in the bibliography"""
         bib_db = _BibDatabase()
         bib_db.entries = self.values()
         return _dumps(bib_db)
 
     def search(self, pattern):
+        """Find all matches of the pattern in the bibliography.
+        Only goes through IDs at the moment."""
         for i in self.ids():
             if _re.match(pattern, i.decode('utf-8')):
                 yield self[i]
 
     def cleanup(self, mode=None):
+        """Try to reduce memory usage, by reorganizing
+        database and deleting unnessecary fields"""
         if mode is 'scopus':
             pass #TODO: implement deletion of scopus tags
             #for key in self.db.keys():
