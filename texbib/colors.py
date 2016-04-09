@@ -16,19 +16,29 @@ class ColoredText:
     _colorend = '\033[0m'
 
     def __init__(self, text, color):
-        self.color = color
-        self.text = text
+        self._color = color
+        self._text = text
 
     def __repr__(self):
         return "'{}'".format(str(self))
 
     def __str__(self):
-        return self._colors[self.color] + self.text + self._colorend
+        return self._colors[self.color] + self._text + self._colorend
 
     @classmethod
     def set_colors(cls, color_dict):
         """Define new set of colors and colorcodes"""
         if isinstance(color_dict, dict):
-            cls.colors = color_dict
+            cls._colors = color_dict
         else:
             raise ValueError("Colors must be given in a dic_tionary")
+
+    @property
+    def color(self):
+        return self._color
+
+    @color.setter
+    def color(self, color):
+        self._color = color
+
+

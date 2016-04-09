@@ -2,7 +2,7 @@ import os as _os
 from .bibliography import Bibliography
 from .exceptions import BibCodeError, BibKeyError
 
-class CmdParser:
+class CmdParser(object):
 
     def __init__(self, failfunc=lambda x: None, tellfunc=lambda x: None):
         self.fail = failfunc

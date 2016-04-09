@@ -17,6 +17,10 @@ from .exceptions import *
 
 
 def import_from_dir(dir_local):
+    """Imorts bibtexparser functions from a dir
+
+    import_from_dir(BIBTEXPARSERDIR) -> (loads, dumps, BibDatabase)
+    """
     _spec = importlib.util.spec_from_file_location(
         'bibtexparser',
         _os.path.join(dir_local, '__init__.py'))
@@ -26,11 +30,12 @@ def import_from_dir(dir_local):
             _btparser.dumps,
             _btparser.bibdatabase.BibDatabase)
 
+
 class Bibliography(object):
     """A class to manage bibliographic data in a database.
     It mimics a dictionary with bibtex ids as keys and
-    returns a BibItem, wich is also dinctionary like.
-    It can be seen as a wrapper around dbm.gnu.
+    returns a BibItem, wich is also dinctionary-like.
+    Technically it is a wrapper around the dbm.gnu database.
     """
 
     def __init__(self, bibname=None, mode='o'):
@@ -60,7 +65,7 @@ class Bibliography(object):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
+        self.gdb.close()
 
     def __getitem__(self, key):
         try:
@@ -87,9 +92,6 @@ class Bibliography(object):
 
     def __str__(self):
         return '\n'.join([str(self[key]) for key in self])
-
-    def close(self):
-        self.gdb.close()
 
     @property
     def path(self):
