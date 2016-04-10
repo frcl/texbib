@@ -8,27 +8,13 @@ try:
     from bibtexparser import dumps as _dumps
     from bibtexparser.bibdatabase import BibDatabase as _BibDatabase
 except ImportError:
-    import importlib.util
+    from importutil.importBibtexParser import import_from_dir
     _loads, _dumps, _BibDatabase = \
             import_from_dir(_os.environ['BIBTEXPARSERDIR'])
 
 from .colors import ColoredText as _ct
 from .exceptions import *
 
-
-def import_from_dir(dir_local):
-    """Imorts bibtexparser functions from a dir
-
-    import_from_dir(BIBTEXPARSERDIR) -> (loads, dumps, BibDatabase)
-    """
-    _spec = importlib.util.spec_from_file_location(
-        'bibtexparser',
-        _os.path.join(dir_local, '__init__.py'))
-    _btparser = importlib.util.module_from_spec(_spec)
-    _spec.loader.exec_module(_btparser)
-    return (_btparser.loads,
-            _btparser.dumps,
-            _btparser.bibdatabase.BibDatabase)
 
 
 class Bibliography(object):
