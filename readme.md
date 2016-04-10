@@ -47,5 +47,4 @@ To add the contents of a file to a biliography use the `addto` command.
 texbib addto fooBib foo.bib
 ```
 
-<!-- TODO: API section
-
+<!-- TODO: API section -->

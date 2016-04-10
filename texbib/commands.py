@@ -5,8 +5,8 @@ from .exceptions import BibCodeError, BibKeyError
 class CmdParser(object):
 
     def __init__(self, failfunc=lambda x: None, tellfunc=lambda x: None):
-        self.fail = failfunc
-        self.tell = tellfunc
+        self._fail = failfunc
+        self._tell = tellfunc
 
     def add(self, *filenames):
         self.addto('all', *filenames)
@@ -16,21 +16,24 @@ class CmdParser(object):
 
     def dump(self, bibname='all', directory='.'):
         if not _os.path.exists(directory):
-            self.fail("'{}' is not a directory".format(directory))
+            self._fail("'{}' is not a directory".format(directory))
         with Bibliography(bibname) as bib:
             path = _os.path.join(directory, '{}.bib'.format(bibname))
             with open(path, 'w') as bibtexfile:
                 bibtexfile.write(bib.bibtex())
 
-    def show(self, bibname):
+    @staticmethod
+    def show(bibname):
         with Bibliography(bibname) as bib:
             print(bib)
 
-    def mkbib(self, bibname):
+    @staticmethod
+    def mkbib(bibname):
         with Bibliography(bibname, mode='m') as _:
             pass
 
-    def rmbib(self, bibname):
+    @staticmethod
+    def rmbib(bibname):
         with Bibliography(bibname) as bib:
             _os.remove(bib.path)
 
@@ -42,13 +45,13 @@ class CmdParser(object):
                         with open(filename, 'r') as bibtexfile:
                             bib.update(bibtexfile.read())
                     except BibCodeError:
-                        self.tell(
+                        self._tell(
                             "invalid Bibtex in file '{}'".format(filename))
                     except IOError:
-                        self.tell(
+                        self._tell(
                             "can not open file '{}'".format(filename))
                 else:
-                    self.tell(
+                    self._tell(
                         "file '{}' not in directory".format(filename))
 
     def rmfrom(self, bibname, *identifyers):
@@ -57,14 +60,16 @@ class CmdParser(object):
                 try:
                     del bib[identifyer]
                 except BibKeyError:
-                    self.fail("No item with ID '{}' in {}".format(
+                    self._fail("No item with ID '{}' in {}".format(
                         identifyer, bibname))
 
-    def searchin(self, bibname, pattern):
+    @staticmethod
+    def searchin(bibname, pattern):
         with Bibliography(bibname) as bib:
             print('\n'.join(map(str, bib.search(pattern))))
 
-    def cleanup(self, bibname='all'):
+    @staticmethod
+    def cleanup(bibname='all'):
         with Bibliography(bibname) as bib:
             bib.cleanup()
 
