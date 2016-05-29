@@ -20,27 +20,30 @@ class Bibliography(object):
 
     def __init__(self, bibname=None, mode='o'):
         self.name = bibname
+        self.mode = mode
 
-        try:
-            self.texbibdir = _os.environ['TEXBIBDIR']
-        except KeyError:
-            self.texbibdir = _os.path.join(
-                _os.environ['HOME'], '.texbib')
+        self.texbibdir = _os.environ.get(
+                'TEXBIBDIR',
+                _os.path.join(_os.environ['HOME'], '.texbib'))
+
         self._path = _os.path.join(self.texbibdir, '{}.gdbm')
 
         if not bibname:
             return
 
-        if not _os.path.exists(self.path):
-            if mode is 'm':
-                pass
-            elif mode is 'o':
-                raise BibNameError
-
         try:
-            self.gdb = _gdbm.open(self.path, 'c')
-            if not self.gdb.get('LEN'):
+            if _os.path.exists(self.path):
+                self.gdb = _gdbm.open(self.path, 'w')
+            else:
+                if mode == 'n':
+                    self.gdb = _gdbm.open(self.path, 'c')
+                elif mode == 't':
+                    self.gdb = _gdbm.open(self.path, 'c')
+                elif mode == 'o':
+                    raise BibNameError(bibname)
+
                 self.gdb['LEN'] = '0'
+
         except Exception as exc:
             raise DatabaseError(*exc.args)
 
@@ -49,6 +52,8 @@ class Bibliography(object):
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.gdb.close()
+        if self.mode:
+            _os.remove(self.path)
 
     def __getitem__(self, key):
         try:

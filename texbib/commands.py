@@ -29,7 +29,7 @@ class CmdParser(object):
 
     @staticmethod
     def mkbib(bibname):
-        with Bibliography(bibname, mode='m') as _:
+        with Bibliography(bibname, mode='n') as _:
             pass
 
     @staticmethod
