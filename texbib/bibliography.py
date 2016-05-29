@@ -3,18 +3,12 @@ import re as _re
 import json as _json
 import dbm.gnu as _gdbm
 
-try:
-    from bibtexparser import loads as _loads
-    from bibtexparser import dumps as _dumps
-    from bibtexparser.bibdatabase import BibDatabase as _BibDatabase
-except ImportError:
-    from importutil.importBibtexParser import import_from_dir
-    _loads, _dumps, _BibDatabase = \
-            import_from_dir(_os.environ['BIBTEXPARSERDIR'])
+from bibtexparser import loads as _loads
+from bibtexparser import dumps as _dumps
+from bibtexparser.bibdatabase import BibDatabase as _BibDatabase
 
 from .colors import ColoredText as _ct
 from .exceptions import *
-
 
 
 class Bibliography(object):
@@ -36,7 +30,8 @@ class Bibliography(object):
 
         if not bibname:
             return
-        if not _os.path.exists(self._path.format(bibname)):
+
+        if not _os.path.exists(self.path):
             if mode is 'm':
                 pass
             elif mode is 'o':
@@ -44,8 +39,10 @@ class Bibliography(object):
 
         try:
             self.gdb = _gdbm.open(self.path, 'c')
-        except Exception:
-            raise DatabaseError
+            if not self.gdb.get('LEN'):
+                self.gdb['LEN'] = '0'
+        except Exception as exc:
+            raise DatabaseError(*exc.args)
 
     def __enter__(self):
         return self
@@ -62,22 +59,25 @@ class Bibliography(object):
             raise DatabaseError
 
     def __setitem__(self, key, bibitem):
+        if not self.gdb.get(key):
+            self.gdb['LEN'] = str(int(self.gdb['LEN']) + 1)
         self.gdb[key] = repr(bibitem)
 
     def __delitem__(self, key):
         del self.gdb[key]
+        self.gdb['LEN'] = str(int(self.gdb['LEN']) - 1)
 
     def __contains__(self, identifyer):
         return identifyer in self.ids()
 
     def __len__(self):
-        return len(self.ids())
+        return int(self.gdb['LEN'])
 
     def __iter__(self):
-        return iter(self.ids())
+        return self.ids()
 
     def __str__(self):
-        return '\n'.join([str(self[key]) for key in self])
+        return '\n'.join(str(self[key]) for key in self)
 
     @property
     def path(self):
@@ -96,12 +96,14 @@ class Bibliography(object):
 
     def ids(self):
         """IDs in the bibliography. Simular to dict.keys."""
-        return self.gdb.keys()
+        for k in self.gdb.keys():
+            yield k.decode('utf-8')
 
     def values(self):
         """Simular to dict.values.
         Returns list of BibItems."""
-        return [self[k] for k in self.ids()]
+        for k in self.ids():
+            yield self[k]
 
     def bibtex(self):
         """Returns a single string with the bibtex
@@ -114,7 +116,7 @@ class Bibliography(object):
         """Find all matches of the pattern in the bibliography.
         Only goes through IDs at the moment."""
         for i in self.ids():
-            if _re.match(pattern, i.decode('utf-8')):
+            if _re.match(pattern, i):
                 yield self[i]
 
     def cleanup(self, mode=None):
@@ -125,6 +127,7 @@ class Bibliography(object):
             #for key in self.db.keys():
             #    self.db[key] = BibItem
         self.gdb.reorganize()
+
 
 class BibItem(dict):
     """A dictionary like class that contains data about a single reference.
