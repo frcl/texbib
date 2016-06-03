@@ -1,6 +1,8 @@
 import os as _os
+
 from .bibliography import Bibliography
 from .exceptions import BibCodeError, BibKeyError
+
 
 class CmdParser(object):
 
