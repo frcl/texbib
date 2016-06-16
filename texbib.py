@@ -54,7 +54,8 @@ def parse_args():
     def process_subparser(subp, cmd):
         subargs = inspect.getargs(getattr(CmdParser, cmd).__code__)
         for arg in subargs.args:
-            subp.add_argument(arg)
+            if not arg == 'self':
+                subp.add_argument(arg)
         if subargs.varargs:
             subp.add_argument(subargs.varargs, nargs='+')
 
