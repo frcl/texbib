@@ -22,28 +22,19 @@ class Bibliography(object):
         self.name = bibname
         self.mode = mode
 
-        self.texbibdir = _os.environ.get(
-                'TEXBIBDIR',
-                _os.path.join(_os.environ['HOME'], '.texbib'))
-
-        self._path = _os.path.join(self.texbibdir, '{}.gdbm')
-
-        if not bibname:
-            return
+        self.path = _Path(_os.environ.get('TEXBIBDIR', '~/.texbib')) \
+                    .expanduser().joinpath('{}.gdbm'.format(self.name))
 
         try:
-            if _os.path.exists(self.path):
-                self.gdb = _gdbm.open(self.path, 'w')
+            if self.path.exists():
+                self.gdb = _gdbm.open(str(self.path), 'w')
             else:
                 if mode == 'n':
-                    self.gdb = _gdbm.open(self.path, 'c')
+                    self.gdb = _gdbm.open(str(self.path), 'c')
                 elif mode == 't':
-                    self.gdb = _gdbm.open(self.path, 'c')
+                    self.gdb = _gdbm.open(str(self.path), 'c')
                 elif mode == 'o':
                     raise BibNameError(bibname)
-
-                self.gdb['LEN'] = '0'
-
         except Exception as exc:
             raise DatabaseError(*exc.args)
 
@@ -52,8 +43,8 @@ class Bibliography(object):
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.gdb.close()
-        if self.mode:
-            _os.remove(self.path)
+        if self.mode == 't':
+            self.path.unlink()
 
     def __getitem__(self, key):
         try:
@@ -64,19 +55,16 @@ class Bibliography(object):
             raise DatabaseError
 
     def __setitem__(self, key, bibitem):
-        if not self.gdb.get(key):
-            self.gdb['LEN'] = str(int(self.gdb['LEN']) + 1)
         self.gdb[key] = repr(bibitem)
 
     def __delitem__(self, key):
         del self.gdb[key]
-        self.gdb['LEN'] = str(int(self.gdb['LEN']) - 1)
 
     def __contains__(self, identifyer):
         return identifyer in self.ids()
 
     def __len__(self):
-        return int(self.gdb['LEN'])
+        return len(self.gdb)
 
     def __iter__(self):
         return self.ids()
