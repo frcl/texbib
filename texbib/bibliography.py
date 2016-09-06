@@ -2,13 +2,11 @@ import os as _os
 import re as _re
 import json as _json
 import dbm.gnu as _gdbm
+from pathlib import Path as _Path
 
-from bibtexparser import loads as _loads
-from bibtexparser import dumps as _dumps
-from bibtexparser.bibdatabase import BibDatabase as _BibDatabase
-
-from .colors import ColoredText as _ct
-from .exceptions import *
+from texbib.parser import loads, dumps
+from texbib.colors import ColoredText as _ct
+from texbib.exceptions import *
 
 
 class Bibliography(object):
@@ -18,7 +16,7 @@ class Bibliography(object):
     Technically it is a wrapper around the dbm.gnu database.
     """
 
-    def __init__(self, bibname=None, mode='o'):
+    def __init__(self, bibname, mode='o'):
         self.name = bibname
         self.mode = mode
 
@@ -72,45 +70,44 @@ class Bibliography(object):
     def __str__(self):
         return '\n'.join(str(self[key]) for key in self)
 
-    @property
-    def path(self):
-        """Path to the gdbm file of the bibliography"""
-        return self._path.format(self.name)
-
-    def update(self, bibcode):
-        """Simular to dict.update."""
-        try:
-            entries = _loads(bibcode).get_entry_dict()
-        except Exception:
-            raise BibCodeError
-
-        for key in entries.keys():
-            self[key] = BibItem(entries[key])
+    def update(self, data):
+        """Simular to dict.update. Data can be
+        either a Bibliogrphy or a BibTex string."""
+        if isinstance(data, str):
+            try:
+                entries = loads(data)
+            except Exception:
+                raise BibCodeError
+            for key in entries:
+                self[key] = BibItem(entries[key])
+        elif isinstance(data, Bibliography):
+            for key in data.ids():
+                self[key] = data[key]
+        else:
+            raise TypeError('Can not read {}'.format(type(data)))
 
     def ids(self):
         """IDs in the bibliography. Simular to dict.keys."""
-        for k in self.gdb.keys():
-            yield k.decode('utf-8')
+        for key in self.gdb.keys():
+            yield key.decode('utf-8')
 
     def values(self):
         """Simular to dict.values.
         Returns list of BibItems."""
-        for k in self.ids():
-            yield self[k]
+        for key in self.ids():
+            yield self[key]
 
     def bibtex(self):
         """Returns a single string with the bibtex
         code of all items in the bibliography"""
-        bib_db = _BibDatabase()
-        bib_db.entries = self.values()
-        return _dumps(bib_db)
+        return dumps(self.values())
 
     def search(self, pattern):
         """Find all matches of the pattern in the bibliography.
         Only goes through IDs at the moment."""
-        for i in self.ids():
-            if _re.match(pattern, i):
-                yield self[i]
+        for key in self.ids():
+            if _re.match(pattern, key):
+                yield self[key]
 
     def cleanup(self, mode=None):
         """Try to reduce memory usage, by reorganizing
@@ -134,14 +131,15 @@ class BibItem(dict):
             self.update(item)
         elif isinstance(item, bytes):
             self.update(_json.loads(item.decode('utf-8')))
+        else:
+            raise TypeError
 
     def __str__(self):
         info = [str(_ct(self['ID'], 'ID')),
                 '{} ({})'.format(self['author'],
                                  self['year']),
                 self['title']]
-        return '\n    '.join(info)
+        return '\n\t'.join(info)
 
     def __repr__(self):
         return _json.dumps(self)
-
