@@ -1,10 +1,14 @@
+"""
+Tests for the Bibliography class from the texbib.bibliography module.
+"""
+
 import pytest
 from texbib import Bibliography
 
 
-required = ('ID', 'ENTRYTYPE', 'author', 'year', 'title')
+REQUIRED = ('ID', 'ENTRYTYPE', 'author', 'year', 'title')
 
-bibcode = """@ArTiCle{SomeLabel,
+BIBCODE = """@ArTiCle{SomeLabel,
 author = {Max Mustermann},
 title=  {Einführung in das Sammeln von Briefmarken},
 abstract= {},
@@ -14,15 +18,15 @@ year = {1999}
 
 @pytest.fixture
 def bib():
-    with Bibliography('TEST', 't') as bb:
-        bb.update(bibcode)
-        yield bb
+    with Bibliography('TEST', 't') as test_bib:
+        test_bib.update(BIBCODE)
+        yield test_bib
 
 
 @pytest.fixture
 def empty_bib():
-    with Bibliography('ETEST', 't') as bb:
-        yield bb
+    with Bibliography('ETEST', 't') as test_bib:
+        yield test_bib
 
 
 def test_getitem(bib):
@@ -49,13 +53,13 @@ def test_ids_stops_iteration(empty_bib):
 
 def test_values(bib):
     for item in bib.values():
-        for key in required:
+        for key in REQUIRED:
             assert key in item
 
 
 def test_len_update(empty_bib):
     assert len(empty_bib) == 0
-    empty_bib.update(bibcode)
+    empty_bib.update(BIBCODE)
     assert len(empty_bib) == 1
 
 

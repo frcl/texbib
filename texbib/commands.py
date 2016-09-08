@@ -1,7 +1,7 @@
 import os as _os
 
-from .bibliography import Bibliography
-from .exceptions import BibCodeError, BibKeyError
+from texbib.bibliography import Bibliography
+from texbib.exceptions import BibCodeError, BibKeyError
 
 
 class CmdParser(object):

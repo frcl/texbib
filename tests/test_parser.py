@@ -1,8 +1,12 @@
+"""
+Tests for the parserfuntions ´loads´ and ´dumps` from the texbib.parser module.
+"""
+
 import pytest
 from texbib import parser
 
 
-bibcode_examples = [(
+BIBCODE_EXAMPLES = [(
     """@ArTiCle{SomeLabel,
     author = {Max Mustermann},
     title=  {Einführung in das Sammeln von Briefmarken},
@@ -17,11 +21,11 @@ bibcode_examples = [(
 # loads
 # =====
 
-@pytest.mark.parametrize('bibcode,bibdata', bibcode_examples)
+@pytest.mark.parametrize('bibcode,bibdata', BIBCODE_EXAMPLES)
 def test_loads_with_known_values(bibcode, bibdata):
     assert parser.loads(bibcode) == bibdata
 
-@pytest.mark.parametrize('bibdata', dict(bibcode_examples).values())
+@pytest.mark.parametrize('bibdata', dict(BIBCODE_EXAMPLES).values())
 def test_selfconsistency(bibdata):
     assert parser.loads(parser.dumps(bibdata)) == bibdata
 
@@ -49,7 +53,7 @@ def test_selfconsistency(bibdata):
 # =====
 
 #def test_exception_on_missing_type():
-#    noType = bibcode_examples[0][1]
+#    noType = BIBCODE_EXAMPLES[0][1]
 #
 #    del noType['SomeLabel']['TYPE']
 #    with pytest.raises(ValueError):
