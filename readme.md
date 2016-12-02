@@ -2,6 +2,7 @@
 Texbib is a program that helps you to manage your BibTeX references.
 
 <!-- TODO: installation section -->
+![](https://travis-ci.org/DrFrankeStein/texbib.svg?branch=devel)
 
 ## Usage
 
