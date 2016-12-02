@@ -3,5 +3,9 @@ language: python
 python:
   - '3.5'
 
+install:
+  - 'pip install bibtexparser'
+  - 'pip install --upgrade "pytest>=3.0.0"'
+
 script:
-  - PYTHONPATH=. pytest
+  - 'TEXBIBDIR=./tests PYTHONPATH=. py.test'
