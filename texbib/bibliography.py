@@ -45,12 +45,7 @@ class Bibliography(object):
             self.path.unlink()
 
     def __getitem__(self, key):
-        try:
-            return BibItem(self.gdb[key])
-        except KeyError:
-            raise BibKeyError
-        except Exception:
-            raise DatabaseError
+        return BibItem(self.gdb[key])
 
     def __setitem__(self, key, bibitem):
         self.gdb[key] = repr(bibitem)
@@ -74,10 +69,7 @@ class Bibliography(object):
         """Simular to dict.update. Data can be
         either a Bibliogrphy or a BibTex string."""
         if isinstance(data, str):
-            try:
-                entries = loads(data)
-            except Exception:
-                raise BibCodeError
+            entries = loads(data)
             for key in entries:
                 self[key] = BibItem(entries[key])
         elif isinstance(data, Bibliography):
@@ -100,7 +92,7 @@ class Bibliography(object):
     def bibtex(self):
         """Returns a single string with the bibtex
         code of all items in the bibliography"""
-        return dumps(self.values())
+        return dumps(self)
 
     def search(self, pattern):
         """Find all matches of the pattern in the bibliography.
@@ -118,6 +110,9 @@ class Bibliography(object):
             #    self.db[key] = BibItem
         self.gdb.reorganize()
 
+    def close(self):
+        self.gdb.close()
+
 
 class BibItem(dict):
     """A dictionary like class that contains data about a single reference.
@@ -129,6 +124,8 @@ class BibItem(dict):
         dict.__init__(self)
         if isinstance(item, dict):
             self.update(item)
+        elif isinstance(item, str):
+            self.update(_json.loads(item))
         elif isinstance(item, bytes):
             self.update(_json.loads(item.decode('utf-8')))
         else:

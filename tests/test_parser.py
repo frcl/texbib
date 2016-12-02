@@ -1,5 +1,5 @@
 """
-Tests for the parserfuntions ´loads´ and ´dumps` from the texbib.parser module.
+Tests for the parserfuntions `loads` and `dumps` from the texbib.parser module.
 """
 
 import pytest

@@ -1,7 +1,6 @@
 import os as _os
 
 from texbib.bibliography import Bibliography
-from texbib.exceptions import BibCodeError, BibKeyError
 
 
 class CmdParser(object):
@@ -10,11 +9,11 @@ class CmdParser(object):
         self._fail = failfunc
         self._tell = tellfunc
 
-    def add(self, *filenames):
-        self.addto('all', *filenames)
+    def add(self, filenames):
+        self.addto('all', filenames)
 
-    def rm(self, *identifyer):
-        self.rmfrom('all', *identifyer)
+    def rm(self, identifyer):
+        self.rmfrom('all', identifyer)
 
     def dump(self, bibname='all', directory='.'):
         if not _os.path.exists(directory):
@@ -37,16 +36,16 @@ class CmdParser(object):
     @staticmethod
     def rmbib(bibname):
         with Bibliography(bibname) as bib:
-            _os.remove(bib.path)
+            bib.path.unlink()
 
-    def addto(self, bibname, *filenames):
+    def addto(self, bibname, filenames):
         with Bibliography(bibname) as bib:
             for filename in list(filenames):
                 if _os.path.exists(filename):
                     try:
                         with open(filename, 'r') as bibtexfile:
                             bib.update(bibtexfile.read())
-                    except BibCodeError:
+                    except ValueError:
                         self._tell(
                             "invalid Bibtex in file '{}'".format(filename))
                     except IOError:
@@ -56,12 +55,12 @@ class CmdParser(object):
                     self._tell(
                         "file '{}' not in directory".format(filename))
 
-    def rmfrom(self, bibname, *identifyers):
+    def rmfrom(self, bibname, identifyers):
         with Bibliography(bibname) as bib:
             for identifyer in list(identifyers):
                 try:
                     del bib[identifyer]
-                except BibKeyError:
+                except KeyError:
                     self._fail("No item with ID '{}' in {}".format(
                         identifyer, bibname))
 

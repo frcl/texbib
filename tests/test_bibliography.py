@@ -66,3 +66,9 @@ def test_len_update(empty_bib):
 def test_seach(bib):
     for item in bib.search('ome'):
         assert item['author'] == 'Max Musterman'
+
+
+def test_close(bib):
+    bib.close()
+    with pytest.raises(IOError):
+        bib['SomeLabel']
