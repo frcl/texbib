@@ -1,5 +1,4 @@
 from .bibliography import Bibliography, BibItem
-from .exceptions import BibCodeError, BibNameError, BibKeyError, DatabaseError
 from .commands import CmdParser
 
 __all__ = ['Bibliography',
@@ -9,3 +8,5 @@ __all__ = ['Bibliography',
            'BibKeyError',
            'DatabaseError',
            'CmdParser']
+
+__version__ = '0.1'

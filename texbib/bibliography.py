@@ -6,7 +6,6 @@ from pathlib import Path as _Path
 
 from texbib.parser import loads, dumps
 from texbib.colors import ColoredText as _ct
-from texbib.exceptions import *
 
 
 class Bibliography(object):
