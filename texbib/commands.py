@@ -4,6 +4,9 @@ from texbib.bibliography import Bibliography
 
 
 class CmdParser(object):
+    """Container for texbib commands
+
+    Each method becomes a commandline subcommand"""
 
     def __init__(self, failfunc=lambda x: None, tellfunc=lambda x: None):
         self._fail = failfunc
@@ -79,4 +82,3 @@ class CmdParser(object):
 
     def chcont(self, identifyer, attribute, value):
         pass
-

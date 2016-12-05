@@ -40,5 +40,3 @@ class ColoredText:
     @color.setter
     def color(self, color):
         self._color = color
-
-

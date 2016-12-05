@@ -22,18 +22,15 @@ class Bibliography(object):
         self.path = _Path(_os.environ.get('TEXBIBDIR', '~/.texbib')) \
                     .expanduser().joinpath('{}.gdbm'.format(self.name))
 
-        try:
-            if self.path.exists():
-                self.gdb = _gdbm.open(str(self.path), 'w')
-            else:
-                if mode == 'n':
-                    self.gdb = _gdbm.open(str(self.path), 'c')
-                elif mode == 't':
-                    self.gdb = _gdbm.open(str(self.path), 'c')
-                elif mode == 'o':
-                    raise BibNameError(bibname)
-        except Exception as exc:
-            raise DatabaseError(*exc.args)
+        if self.path.exists():
+            self.gdb = _gdbm.open(str(self.path), 'w')
+        else:
+            if mode == 'n':
+                self.gdb = _gdbm.open(str(self.path), 'c')
+            elif mode == 't':
+                self.gdb = _gdbm.open(str(self.path), 'c')
+            elif mode == 'o':
+                raise IOError('{} not found'.format(bibname))
 
     def __enter__(self):
         return self
