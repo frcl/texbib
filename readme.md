@@ -1,8 +1,18 @@
 # TexBib
 Texbib is a program that helps you to manage your BibTeX references.
 
-<!-- TODO: installation section -->
 ![](https://travis-ci.org/DrFrankeStein/texbib.svg?branch=devel)
+
+## Installation
+To install texbib use the following commands
+
+```sh
+git clone https://github.com/DrFrankeStein/texbib
+cd texbib
+pip install .
+```
+
+Since texbib is not stable right now, consider installing it in a virtualenv or locally with the `--user` flag.
 
 ## Usage
 
@@ -12,7 +22,7 @@ To add the contents of a BibTeX `foo.bib` file to the global bibliography type i
 texbib add foo.bib
 ```
 You can specify as many files as you want in a singe command.
-The entries in the bibliography can be adressed by the ID that is spacified in the BibTeX file.
+The entries in the bibliography can be addressed by the ID that is specified in the BibTeX file.
 <!--If there was no ID specified the ID are the first four letter of the authors name followed directly by the year of publication.-->
 
 Later you probably want to create a new file with all the references in your document directory.
@@ -43,7 +53,7 @@ It can be removed with
 texbib rmbib fooBib
 ```
 
-To add the contents of a file to a biliography use the `addto` command.
+To add the contents of a file to a bibliography use the `addto` command.
 ```sh
 texbib addto fooBib foo.bib
 ```
