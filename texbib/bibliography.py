@@ -22,7 +22,7 @@ class Bibliography(object):
         self.path = _Path(_os.environ.get('TEXBIBDIR', '~/.texbib')) \
                     .expanduser().joinpath('{}.gdbm'.format(self.name))
 
-        if self.path.exists():
+        if self.path.exists(): # pylint: disable=no-member
             self.gdb = _gdbm.open(str(self.path), 'w')
         else:
             if mode == 'n':
@@ -38,7 +38,7 @@ class Bibliography(object):
     def __exit__(self, exc_type, exc_value, traceback):
         self.gdb.close()
         if self.mode == 't':
-            self.path.unlink()
+            self.path.unlink() # pylint: disable=no-member
 
     def __getitem__(self, key):
         return BibItem(self.gdb[key])

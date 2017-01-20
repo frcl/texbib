@@ -8,7 +8,7 @@ to manage your BibTeX references.
 import argparse
 import inspect
 
-from texbib import CmdParser, __version__
+from .commands import CmdParser
 
 def tell(msg):
     """Print a warning message and continue.
@@ -46,7 +46,7 @@ def parse_args():
         description='Texbib is a program that helps '
         'you to manage your BibTeX references.')
 
-    argp.add_argument('--version', action='version', version='%(prog)s ' + __version__)
+    # argp.add_argument('--version', action='version', version='%(prog)s ' + __version__)
     argp.add_argument('-z', '--gen-zsh-comp', action='store_true')
 
     subcmdparsers = argp.add_subparsers(dest='subcommand',
