@@ -1,8 +1,7 @@
-import os as _os
-import re as _re
-import json as _json
-import dbm.gnu as _gdbm
-from pathlib import Path as _Path
+import re
+import shelve
+from pathlib import Path as Path
+from typing import Union
 
 from texbib.parser import loads, dumps
 from texbib.colors import ColoredText as _ct
@@ -15,42 +14,38 @@ class Bibliography(object):
     Technically it is a wrapper around the dbm.gnu database.
     """
 
-    def __init__(self, bibname, mode='o'):
-        self.name = bibname
+    def __init__(self, path: Union[Path, str], mode: str = 'o'):
         self.mode = mode
 
-        self.path = _Path(_os.environ.get('TEXBIBDIR', '~/.texbib')) \
-                    .expanduser().joinpath('{}.gdbm'.format(self.name))
+        self.path = Path(path)
 
-        if self.path.exists(): # pylint: disable=no-member
-            self.gdb = _gdbm.open(str(self.path), 'w')
+        if self.path.exists():
+            self.db = shelve.open(str(self.path), 'w')
         else:
             if mode == 'n':
-                self.gdb = _gdbm.open(str(self.path), 'c')
-            elif mode == 't':
-                self.gdb = _gdbm.open(str(self.path), 'c')
+                self.db = shelve.open(str(self.path), 'c')
+            elif mode == 'e':
+                pass
             elif mode == 'o':
-                raise IOError('{} not found'.format(bibname))
+                raise IOError('{} not found'.format(path))
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.gdb.close()
-        if self.mode == 't':
-            self.path.unlink() # pylint: disable=no-member
+        self.db.close()
 
     def __getitem__(self, key):
-        return BibItem(self.gdb[key])
+        return BibItem(self.db[key])
 
     def __setitem__(self, key, bibitem):
-        self.gdb[key] = repr(bibitem)
+        self.db[key] = bibitem
 
     def __contains__(self, identifyer):
         return identifyer in self.ids()
 
     def __len__(self):
-        return len(self.gdb)
+        return len(self.db)
 
     def __iter__(self):
         return self.ids()
@@ -72,12 +67,12 @@ class Bibliography(object):
             raise TypeError('Can not read {}'.format(type(data)))
 
     def remove(self, key):
-        del self.gdb[key]
+        del self.db[key]
 
     def ids(self):
         """IDs in the bibliography. Simular to dict.keys."""
-        for key in self.gdb.keys():
-            yield key.decode('utf-8')
+        for key in self.db.keys():
+            yield key
 
     def values(self):
         """Simular to dict.values.
@@ -94,20 +89,19 @@ class Bibliography(object):
         """Find all matches of the pattern in the bibliography.
         Only goes through IDs at the moment."""
         for key in self.ids():
-            if _re.match(pattern, key):
+            if re.match(pattern, key):
                 yield self[key]
 
     def cleanup(self, mode=None):
         """Try to reduce memory usage, by reorganizing
         database and deleting unnessecary fields"""
-        if mode is 'scopus':
+        if mode == 'scopus':
             pass #TODO: implement deletion of scopus tags
             #for key in self.db.keys():
             #    self.db[key] = BibItem
-        self.gdb.reorganize()
 
     def close(self):
-        self.gdb.close()
+        self.db.close()
 
 
 class BibItem(dict):
@@ -118,12 +112,9 @@ class BibItem(dict):
 
     def __init__(self, item):
         dict.__init__(self)
+
         if isinstance(item, dict):
             self.update(item)
-        elif isinstance(item, str):
-            self.update(_json.loads(item))
-        elif isinstance(item, bytes):
-            self.update(_json.loads(item.decode('utf-8')))
         else:
             raise TypeError
 
@@ -133,6 +124,3 @@ class BibItem(dict):
                                  self['year']),
                 self['title']]
         return '\n\t'.join(info)
-
-    def __repr__(self):
-        return _json.dumps(self)

@@ -19,4 +19,4 @@ BIBITEM_EXAMPLES = [
 
 @pytest.mark.parametrize('bibdata', BIBITEM_EXAMPLES)
 def test_repr_is_valid_json(bibdata):
-    assert json.loads(repr(BibItem(bibdata))) == bibdata
+    assert dict(BibItem(bibdata)) == bibdata
