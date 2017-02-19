@@ -1,84 +1,103 @@
 import os as _os
 
 from texbib.bibliography import Bibliography
+from texbib.utils import runtime_action, CmdTracker
 
 
-class CmdParser(object):
-    """Container for texbib commands
+commands = CmdTracker()
 
-    Each method becomes a commandline subcommand"""
 
-    def __init__(self, failfunc=lambda x: None, tellfunc=lambda x: None):
-        self._fail = failfunc
-        self._tell = tellfunc
-
-    def add(self, filenames):
-        self.addto('all', filenames)
-
-    def rm(self, identifyer):
-        self.rmfrom('all', identifyer)
-
-    def dump(self, bibname='all', directory='.'):
-        if not _os.path.exists(directory):
-            self._fail("'{}' is not a directory".format(directory))
-        with Bibliography(bibname) as bib:
-            path = _os.path.join(directory, '{}.bib'.format(bibname))
-            with open(path, 'w') as bibtexfile:
-                bibtexfile.write(bib.bibtex())
-
-    @staticmethod
-    def show(bibname):
-        with Bibliography(bibname) as bib:
-            print(bib)
-
-    @staticmethod
-    def mkbib(bibname):
-        with Bibliography(bibname, mode='n') as _:
-            pass
-
-    @staticmethod
-    def rmbib(bibname):
-        with Bibliography(bibname) as bib:
-            bib.path.unlink()
-
-    def addto(self, bibname, filenames):
-        with Bibliography(bibname) as bib:
-            for filename in list(filenames):
-                if _os.path.exists(filename):
-                    try:
-                        with open(filename, 'r') as bibtexfile:
-                            bib.update(bibtexfile.read())
-                    except ValueError:
-                        self._tell(
-                            "invalid Bibtex in file '{}'".format(filename))
-                    except IOError:
-                        self._tell(
-                            "can not open file '{}'".format(filename))
-                else:
-                    self._tell(
-                        "file '{}' not in directory".format(filename))
-
-    def rmfrom(self, bibname, identifyers):
-        with Bibliography(bibname) as bib:
-            for identifyer in list(identifyers):
+@commands.register
+def add(filenames):
+    # TODO: get active bibname
+    bibname = 'all'
+    with Bibliography(bibname) as bib:
+        for filename in list(filenames):
+            if _os.path.exists(filename):
                 try:
-                    del bib[identifyer]
-                except KeyError:
-                    self._fail("No item with ID '{}' in {}".format(
-                        identifyer, bibname))
+                    with open(filename) as bibtexfile:
+                        bib.update(bibtexfile.read())
+                except ValueError:
+                    runtime_action(
+                        "invalid Bibtex in file '{}'".format(filename))
+                except IOError:
+                    runtime_action(
+                        "can not open file '{}'".format(filename))
+            else:
+                runtime_action(
+                    "file '{}' not in directory".format(filename))
 
-    @staticmethod
-    def searchin(bibname, pattern):
-        with Bibliography(bibname) as bib:
-            print('\n'.join(map(str, bib.search(pattern))))
+@commands.register
+def rm(identifyers):
+    # TODO: get active bibname
+    bibname = 'all'
+    with Bibliography(bibname) as bib:
+        for identifyer in list(identifyers):
+            try:
+                bib.remove(identifyer)
+            except KeyError:
+                runtime_action("No item with ID '{}' in {}"
+                               .format(identifyer, bibname),
+                               action='fail')
+                # TODO: tell or check befor removing
 
-    @staticmethod
-    def cleanup(bibname='all'):
-        with Bibliography(bibname) as bib:
-            bib.cleanup()
 
-    def chid(self, identifyer, new_identifyer):
+@commands.register
+def dump(bibname='all', directory='.'):
+    if not _os.path.exists(directory):
+        runtime_action("'{}' is not a directory".format(directory),
+                       action='fail')
+    with Bibliography(bibname) as bib:
+        path = _os.path.join(directory, '{}.bib'.format(bibname))
+        with open(path, 'w') as bibtexfile:
+            bibtexfile.write(bib.bibtex())
+
+
+@commands.register
+def create(bibname):
+    with Bibliography(bibname, mode='n') as _:
         pass
 
-    def chcont(self, identifyer, attribute, value):
-        pass
+
+@commands.register
+def delete(bibname):
+    with Bibliography(bibname) as bib:
+        bib.path.unlink() # pylint: disable=no-member
+
+
+@commands.register
+def activate(bibname):
+    with Bibliography(bibname) as bib:
+        print(bib)
+
+
+@commands.register
+def show():
+    # TODO: get active bibname
+    bibname = 'all'
+    with Bibliography(bibname) as bib:
+        print(bib)
+
+
+@commands.register
+def find(pattern):
+    # TODO: get active bibname
+    bibname = 'all'
+    with Bibliography(bibname) as bib:
+        print('\n'.join(map(str, bib.search(pattern))))
+
+
+@commands.register
+def search(pattern):
+    # TODO: get active bibname
+    bibname = 'all'
+    with Bibliography(bibname) as bib:
+        print('\n'.join(map(str, bib.search(pattern))))
+
+
+@commands.register
+def gc():
+    # TODO: get active bibname
+    bibname = 'all'
+    with Bibliography(bibname) as bib:
+        bib.cleanup()

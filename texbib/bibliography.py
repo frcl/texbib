@@ -46,9 +46,6 @@ class Bibliography(object):
     def __setitem__(self, key, bibitem):
         self.gdb[key] = repr(bibitem)
 
-    def __delitem__(self, key):
-        del self.gdb[key]
-
     def __contains__(self, identifyer):
         return identifyer in self.ids()
 
@@ -73,6 +70,9 @@ class Bibliography(object):
                 self[key] = data[key]
         else:
             raise TypeError('Can not read {}'.format(type(data)))
+
+    def remove(self, key):
+        del self.gdb[key]
 
     def ids(self):
         """IDs in the bibliography. Simular to dict.keys."""

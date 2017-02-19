@@ -8,27 +8,17 @@ to manage your BibTeX references.
 import argparse
 import inspect
 
-from .commands import CmdParser
+from texbib.commands import commands
+from texbib.utils import runtime_action
 
-def tell(msg):
-    """Print a warning message and continue.
-    Used for wranings and if an error is only partial."""
-    print('texbib: {}'.format(msg))
-
-def fail(msg):
-    """Print error message and exit.
-    Used if texbib can not continue."""
-    print('texbib: {}'.format(msg))
-    quit()
 
 def main(args):
 
     cmd = args['subcommand']
     del args['subcommand']
-    cmd_parser = CmdParser(fail, tell)
 
-    if hasattr(cmd_parser, cmd) and not cmd.startswith('_'):
-        cmd_func = getattr(cmd_parser, cmd)
+    if cmd in commands:
+        cmd_func = commands[cmd]
         # try:
         cmd_func(**args)
         # except TypeError:
@@ -38,7 +28,7 @@ def main(args):
         # except IOError:
             # fail('database currupt')
     else:
-        fail('unknown command')
+        runtime_action('unknown command', action='fail')
 
 def parse_args():
     argp = argparse.ArgumentParser(
@@ -52,10 +42,10 @@ def parse_args():
     subcmdparsers = argp.add_subparsers(dest='subcommand',
                                         help='Texbib command to be executed')
 
-    for attr in dir(CmdParser):
+    for attr in commands:
         if not attr.startswith('_'):
             subp = subcmdparsers.add_parser(attr)
-            subargs = inspect.getargs(getattr(CmdParser, attr).__code__)
+            subargs = inspect.getargs(commands[attr].__code__)
             for arg in subargs.args:
                 if not arg == 'self':
                     if arg in ('filenames', 'identifyer'):
