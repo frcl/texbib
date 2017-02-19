@@ -36,7 +36,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'texbib=texbib:run_texbib',
+            'texbib=texbib.cli:cli',
         ],
     },
 )
