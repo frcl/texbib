@@ -17,19 +17,15 @@ year = {1999}
 
 
 @pytest.fixture
-def bib():
-    import shelve
-    with Bibliography('TEST', 'e') as test_bib:
-        test_bib.db = shelve.Shelf({})
+def bib(tmpdir):
+    with Bibliography(tmpdir.join('test.db'), 'c') as test_bib:
         test_bib.update(BIBCODE)
         yield test_bib
 
 
 @pytest.fixture
-def empty_bib():
-    import shelve
-    with Bibliography('ETEST', 'e') as test_bib:
-        test_bib.db = shelve.Shelf({})
+def empty_bib(tmpdir):
+    with Bibliography(tmpdir.join('empty.db'), 'c') as test_bib:
         yield test_bib
 
 
