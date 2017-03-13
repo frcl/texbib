@@ -14,14 +14,24 @@ def runtime(tmpdir_factory):
 
 @pytest.fixture(scope="module")
 def init_runtime(tmpdir_factory):
-    tmpdir = tmpdir_factory.mktemp('test')
+    tmpdir = tmpdir_factory.mktemp('init')
     run = RuntimeInstance('fake', fakedir=tmpdir)
     return run
 
 
 @pytest.fixture(scope="module")
-def commands(init_runtime):
-    _commands.set_runtime(init_runtime)
+def commands(tmpdir_factory):
+    tmpdir = tmpdir_factory.mktemp('com')
+    run = RuntimeInstance('fake', fakedir=tmpdir)
+    _commands.set_runtime(run)
     _commands.run.activate('test1')
     _commands.run.activate('test0')
+    return _commands()
+
+
+@pytest.fixture(scope="module")
+def init_commands(tmpdir_factory):
+    tmpdir = tmpdir_factory.mktemp('com')
+    run = RuntimeInstance('fake', fakedir=tmpdir)
+    _commands.set_runtime(run)
     return _commands()

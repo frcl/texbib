@@ -63,9 +63,9 @@ def test_len_update(empty_bib):
     assert len(empty_bib) == 1
 
 
-def test_seach(bib):
+def test_search(bib):
     for item in bib.search('ome'):
-        assert item['author'] == 'Max Musterman'
+        assert item['author'] == 'Max Mustermann'
 
 
 def test_close(bib):
