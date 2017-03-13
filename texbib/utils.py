@@ -1,14 +1,22 @@
-import sys
+from enum import Enum
 
 
-def runtime_action(msg, action='tell'):
-    print('texbib:', msg)
-    if action == 'fail':
-        sys.exit(1)
+class Events(Enum):
+    FileNotFound = 1
+    IdNotFound = 2
+    NoEffect = 3
+    InvalidName = 4
+
+    def __str__(self):
+        return '{event}'.format(event=self.name)
 
 
-class CmdTracker(dict):
+class Levels(Enum):
+    info = 1
+    warning = 2
+    error = 3
+    critical = 4
 
-    def register(self, cmd_func):
-        self[cmd_func.__name__] = cmd_func
-        return cmd_func
+    def __str__(self):
+        return '{level}'\
+               .format(level=self.name.upper()) # pylint: disable=no-member

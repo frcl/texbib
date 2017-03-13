@@ -109,7 +109,7 @@ class Bibliography(object):
         """Find all matches of the pattern in the bibliography.
         Only goes through IDs at the moment."""
         for key in self.ids():
-            if re.match(pattern, key):
+            if re.search(pattern, key):
                 yield self[key]
 
     def cleanup(self):

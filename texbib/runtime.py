@@ -101,11 +101,12 @@ class RuntimeInstance(object):
                                             level=level,
                                             texbib_msg=texbib_msg)
             else:
-                msg = self.debug_msg.format(level=level,
+                msg = self.error_msg.format(level=level,
                                             texbib_msg=texbib_msg)
         else:
             msg = self.error_msg.format(level=level,
-                                        texbib_msg=event)
+                                        texbib_msg=texbib_msg)
+        # TODO: message without exception
 
         sys.stderr.write(msg)
 
