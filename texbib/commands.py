@@ -1,6 +1,6 @@
 import sys
-import typing
 from pathlib import Path
+from typing import List, Optional
 
 from texbib.bibliography import Bibliography
 from texbib.utils import Levels, Events
@@ -37,7 +37,8 @@ class commands(dict): # pylint: disable=invalid-name
 
 
 @commands.register
-def add(filenames: typing.List[str]) -> None:
+def add(filenames: List[str]) -> None:
+    """Add the content of files to the active bibliography"""
     for path in map(Path, filenames):
         if path.exists():
             with path.open() as infile:
@@ -50,7 +51,8 @@ def add(filenames: typing.List[str]) -> None:
 
 
 @commands.register
-def rm(identifyers: typing.List[str]) -> None:
+def rm(identifyers: List[str]) -> None:
+    """Remove a reference from the active bibliography"""
     for identifyer in identifyers:
         try:
             commands.run.active.remove(identifyer)
@@ -62,7 +64,8 @@ def rm(identifyers: typing.List[str]) -> None:
 
 
 @commands.register
-def dump(outfile: typing.Optional[str]=None) -> None:
+def dump(outfile: Optional[str] = None) -> None:
+    """Create a bibtex file with all references in active bibliography"""
     if outfile:
         path = Path(outfile)
     else:
@@ -73,6 +76,7 @@ def dump(outfile: typing.Optional[str]=None) -> None:
 
 @commands.register
 def create(bibname: str) -> None:
+    """Create a new bibliography"""
     if (not bibname) or (' ' in bibname):
         commands.run.event(Events.InvalidName,
                            repr(bibname),
@@ -90,9 +94,11 @@ def create(bibname: str) -> None:
 
 @commands.register
 def delete(bibname: str) -> None:
+    """Delete a bibliography"""
     path = commands.run.texbibdir.joinpath('{}.db'.format(bibname))
     if path.exists(): # pylint: disable=no-member
-        if commands.run.ask('Realy delete {}?'.format(bibname),
+        # TODO: handle active bib deletion
+        if commands.run.ask('Really delete {}?'.format(bibname),
                             default=False):
             path.unlink() # pylint: disable=no-member
     else:
@@ -104,6 +110,7 @@ def delete(bibname: str) -> None:
 
 @commands.register
 def open(bibname: str) -> None:
+    """Activate a bibliography"""
     path = commands.run.texbibdir.joinpath('{}.db'.format(bibname))
     if str(commands.run.active_path) == str(path):
         commands.run.event(Events.NoEffect, 'already active', Levels.info, None)
@@ -115,6 +122,7 @@ def open(bibname: str) -> None:
 
 @commands.register
 def list() -> None:
+    """List all available bibliographies"""
     for bibpath in commands.run.texbibdir.iterdir():
         if bibpath.suffix == '.db':
             pre = '*' if bibpath.stem in commands.run.active_name else ' '
@@ -122,7 +130,8 @@ def list() -> None:
 
 
 @commands.register
-def show(bibname: typing.Optional[str] = None) -> None:
+def show(bibname: Optional[str] = None) -> None:
+    """List the content of the active bibliography"""
     if bibname:
         return NotImplemented
     else:
@@ -132,15 +141,18 @@ def show(bibname: typing.Optional[str] = None) -> None:
 
 @commands.register
 def find(pattern: str) -> None:
+    """Seach in local bibliographies"""
     for bibitem in commands.run.active.search(pattern):
         sys.stdout.write(str(bibitem) + '\n')
 
 
 @commands.register
 def search(pattern: str) -> None:
+    """Seach in the web"""
     return NotImplemented
 
 
 @commands.register
 def gc() -> None:
+    """Clean up"""
     return NotImplemented
