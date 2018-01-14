@@ -9,11 +9,17 @@ def version():
     return _version
 
 
+def readme():
+    with open('readme.rst', 'r') as readme_file:
+        _readme = readme_file.read()
+    return _readme
+
+
 setup(
     name='texbib',
     version=version(),
     description='A tool for manageing BibTeX references',
-    long_description='',
+    long_description=readme(),
     url='https://github.com/frcl/texbib',
     author='Lars Franke',
     author_email='lars.franke@mailbox.org',

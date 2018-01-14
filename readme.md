@@ -7,7 +7,7 @@ Texbib is a program that helps you to manage your BibTeX references.
 To install texbib use the following commands
 
 ```
-git clone https://github.com/DrFrankeStein/texbib
+git clone https://github.com/frcl/texbib
 cd texbib
 pip install .
 ```
