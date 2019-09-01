@@ -7,6 +7,7 @@ to manage your BibTeX references.
 import argparse
 import inspect
 import typing
+from pathlib import Path
 
 from texbib.runtime import RuntimeInstance
 from texbib.commands import commands
@@ -15,7 +16,8 @@ from texbib import __version__
 
 def main(args):
 
-    runtime = RuntimeInstance('debug')
+    runtime = RuntimeInstance(args['debug'])
+    del args['debug']
     commands.set_runtime(runtime)
 
     cmds = commands()
@@ -37,9 +39,10 @@ def parse_args():
         description='Texbib is a program that helps '
         'you to manage your BibTeX references.')
 
-    argp.add_argument('--version',
-                      action='version',
+    argp.add_argument('--version', action='version',
                       version='%(prog)s ' + __version__)
+    # argp.add_argument('-c', '--config', type=Path)
+    argp.add_argument('-d', '--debug', action='store_true')
 
     subcmdparsers = argp.add_subparsers(title='commands', dest='command',
                                         metavar='command', required=True)
@@ -53,6 +56,8 @@ def parse_args():
                 subp.add_argument(name, nargs='+')
             elif param.annotation == typing.Union[str, None]:
                 subp.add_argument(name, nargs='?')
+            elif param.annotation == bool:
+                subp.add_argument('-'+name[0], action='store_true')
             else:
                 subp.add_argument(name)
     args = argp.parse_args()

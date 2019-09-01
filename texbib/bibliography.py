@@ -29,7 +29,7 @@ class BibItem(dict):
         return '\n\t'.join(info)
 
 
-class Bibliography(object):
+class Bibliography:
     """A class to manage bibliographic data in a database.
     It mimics a dictionary with bibtex ids as keys and
     returns a BibItem, wich is also dinctionary-like.
