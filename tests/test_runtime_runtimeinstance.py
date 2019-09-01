@@ -6,25 +6,14 @@ from texbib.utils import Events, Levels
 
 def test_init_state(init_runtime):
     assert {path.name for path in init_runtime.bibdir.iterdir()} \
-            == {'default.db', 'default.lock'}
+            == {'default', 'ACTIVE'}
     init_runtime.activate('test')
-    assert 'test.db' in [path.name for path in init_runtime.bibdir.iterdir()]
+    assert (init_runtime.bibdir/'test'/'metadata.db').exists()
 
 
 def test_paths(runtime):
     assert runtime.bibdir.is_dir()
-    assert runtime.state_path.name == 'active'
-    assert runtime.active_path.suffix == '.db'
-    assert runtime.lock_path.suffix == '.lock'
-    # TODO: better tests for db and lock paths
-
-
-def test_lock(runtime):
-    assert runtime.lock_path.exists()
-    runtime.unlock()
-    assert not runtime.lock_path.exists()
-    runtime.lock()
-    assert runtime.lock_path.exists()
+    assert runtime.state_path.name == 'ACTIVE'
 
 
 def test_activate(runtime):

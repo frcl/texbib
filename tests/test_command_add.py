@@ -7,7 +7,8 @@ def test_adding_file(commands, tmpdir):
             title = "The title"
         }""")
     commands['add']([path])
-    assert 'foo' in commands.run.active.db.keys()
+    with commands.run.open() as bib:
+        assert 'foo' in bib.db.keys()
 
 
 def test_skip_non_existing(commands, tmpdir, capsys):
