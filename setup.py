@@ -10,7 +10,7 @@ def version():
 
 
 def readme():
-    with open('readme.rst', 'r') as readme_file:
+    with open('readme.md', 'r') as readme_file:
         _readme = readme_file.read()
     return _readme
 
@@ -18,19 +18,20 @@ def readme():
 setup(
     name='texbib',
     version=version(),
-    description='A tool for manageing BibTeX references',
+    description='A tool for managing bibliographies',
     long_description=readme(),
-    url='https://github.com/frcl/texbib',
+    long_description_content_type='text/markdown',
+    url='https://github.com/frcl/bib',
     author='Lars Franke',
-    author_email='lars.franke@mailbox.org',
+    author_email='frcl@mailbox.org',
     license='GPLv3',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Science/Research',
-        'Topic :: Text Processing :: Markup :: LaTeX',
         'Environment :: Console',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
     ],
     keywords='bibtex latex science writing',
@@ -41,7 +42,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'texbib=texbib.cli:cli',
+            'bib=texbib.cli:cli',
         ],
     },
 )

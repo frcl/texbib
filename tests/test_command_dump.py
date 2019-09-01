@@ -14,7 +14,7 @@ def test_dumped_file_valid(commands):
     dump = commands['dump']
     commands.run.active.update(BIBCODE)
     item = commands.run.active['SomeLabel']
-    path = commands.run.texbibdir.joinpath('test.bib')
+    path = commands.run.bibdir.joinpath('test.bib')
     dump(str(path))
     with path.open() as bibfile:
         commands.run.active.update(bibfile.read())
@@ -24,13 +24,13 @@ def test_dumped_file_valid(commands):
 # def test_non_existing_bib(commands, capsys):
     # dump = commands['dump']
     # commands.run.active.update(BIBCODE)
-    # path = commands.run.texbibdir.joinpath('test.bib')
+    # path = commands.run.bibdir.joinpath('test.bib')
     # dump(str(path))
 
 
 def test_empty_bib(commands):
     dump = commands['dump']
-    path = commands.run.texbibdir.joinpath('test.bib')
+    path = commands.run.bibdir.joinpath('test.bib')
     dump(str(path))
     with path.open() as bibfile:
         commands.run.active.update(bibfile.read())

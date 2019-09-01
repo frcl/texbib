@@ -7,7 +7,7 @@ def test_simple_deletion(commands, monkeypatch):
     commands.run.activate('foo')
     commands.run.activate('bar')
     delete('foo')
-    assert not commands.run.texbibdir.joinpath('foo.db').exists()
+    assert not commands.run.bibdir.joinpath('foo.db').exists()
     assert commands.run.active_name == 'bar'
 
 

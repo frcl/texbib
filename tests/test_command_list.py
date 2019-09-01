@@ -17,7 +17,7 @@ def test_no_bibs(init_commands, capsys):
 
 
 def test_file_not_bib(commands, capsys):
-    commands.run.texbibdir.joinpath('foo.bib').touch()
+    commands.run.bibdir.joinpath('foo.bib').touch()
     commands['list']()
     out, _ = capsys.readouterr()
     assert 'default' in out

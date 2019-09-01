@@ -83,7 +83,7 @@ def create(bibname: str) -> None:
                            Levels.critical,
                            None)
     else:
-        path = commands.run.texbibdir.joinpath('{}.db'.format(bibname))
+        path = commands.run.bibdir.joinpath('{}.db'.format(bibname))
         if path.exists() and commands.run.ask( # pylint: disable=no-member
                 'Bib exists. Overwrite?',
                 default=False):
@@ -95,7 +95,7 @@ def create(bibname: str) -> None:
 @commands.register
 def delete(bibname: str) -> None:
     """Delete a bibliography"""
-    path = commands.run.texbibdir.joinpath('{}.db'.format(bibname))
+    path = commands.run.bibdir.joinpath('{}.db'.format(bibname))
     if path.exists(): # pylint: disable=no-member
         # TODO: handle active bib deletion
         if commands.run.ask('Really delete {}?'.format(bibname),
@@ -111,7 +111,7 @@ def delete(bibname: str) -> None:
 @commands.register
 def open(bibname: str) -> None:
     """Activate a bibliography"""
-    path = commands.run.texbibdir.joinpath('{}.db'.format(bibname))
+    path = commands.run.bibdir.joinpath('{}.db'.format(bibname))
     if str(commands.run.active_path) == str(path):
         commands.run.event(Events.NoEffect, 'already active', Levels.info, None)
     elif path.exists() or commands.run.ask( # pylint: disable=no-member
@@ -123,7 +123,7 @@ def open(bibname: str) -> None:
 @commands.register
 def list() -> None:
     """List all available bibliographies"""
-    for bibpath in commands.run.texbibdir.iterdir():
+    for bibpath in commands.run.bibdir.iterdir():
         if bibpath.suffix == '.db':
             pre = '*' if bibpath.stem in commands.run.active_name else ' '
             sys.stdout.write('{} {}\n'.format(pre, bibpath.stem))
