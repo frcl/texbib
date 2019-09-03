@@ -111,7 +111,7 @@ class RuntimeInstance:
                                         bib_msg=bib_msg)
         # TODO: message without exception
 
-        sys.stderr.write(msg)
+        sys.stderr.write(msg+'\n')
 
         if level == Levels.critical:
             sys.stdout.write('aborting...')
