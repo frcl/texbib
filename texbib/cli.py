@@ -26,7 +26,11 @@ def main(args):
     del args['command']
 
     # the validity of the command has already been checked by the ArgumentParser
-    cmd_func = cmds[cmd]
+    try:
+        cmd_func = cmds[cmd]
+    except KeyError:
+        cmd_func = cmds[next(c for c in cmds
+                             if c.startswith(cmd) and c != 'delete')]
     status = cmd_func(**args)
 
     if status == NotImplemented:
@@ -36,7 +40,7 @@ def main(args):
 def parse_args():
     argp = argparse.ArgumentParser(
         prog='bib',
-        description='Texbib is a program that helps '
+        description='bib is a program that helps '
         'you to manage your BibTeX references.')
 
     argp.add_argument('--version', action='version',
@@ -49,7 +53,8 @@ def parse_args():
 
     for cmd in commands.dict:
         cmdhelp = commands.dict[cmd].__doc__
-        subp = subcmdparsers.add_parser(cmd, help=cmdhelp)
+        aliases = [cmd[0]] if cmd != 'delete' else []
+        subp = subcmdparsers.add_parser(cmd, help=cmdhelp, aliases=aliases)
         subcmd_sig = inspect.signature(commands.dict[cmd])
         for name, param in subcmd_sig.parameters.items():
             if param.annotation == typing.List[str]:
