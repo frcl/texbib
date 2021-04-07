@@ -40,6 +40,7 @@ setup(
         'bibtexparser',
         'requests',
         'isbnlib',
+        'beautifulsoup4',
     ],
     extras_require={
         'test': ['pytest'],
