@@ -1,0 +1,26 @@
+#compdef bib
+local -a commands options
+
+commands=(
+    "add\:'Add some resources to the active bibliography'"
+    "rm\:'Remove a reference from the active bibliography'"
+    "dump\:'Create a bibtex file with all references in active bibliography'"
+    "init\:'Create a new bibliography'"
+    "delete\:'Delete a bibliography'"
+    "checkout\:'Activate a bibliography'"
+    "list\:'List all available bibliographies'"
+    "show\:'List the content of the active bibliography'"
+    "find\:'Seach in local bibliographies'"
+)
+
+options=(
+	"-h\:'show this help message and exit'"
+	"--help\:'show this help message and exit'"
+  	"--version\:'show program's version number and exit'"
+  	"-d\:''"
+	"--debug\:''"
+)
+
+_alternative \
+  "args::(($commands))" \
+  "options::(($options))"
