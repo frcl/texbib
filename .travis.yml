@@ -1,12 +1,11 @@
 language: python
 
 python:
-  - '3.6'
+  - '3.9'
 
 install:
-  - 'pip install bibtexparser'
-  - 'pip install --upgrade "pytest>=3.0.0"'
+  - 'pip install --upgrade pytest'
   - 'pip install .'
 
 script:
-  - 'py.test'
+  - 'pytest'
