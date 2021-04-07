@@ -141,8 +141,8 @@ def show(bibname: Optional[str] = None) -> None:
 
 
 @commands.register
-def find(pattern: str) -> None:
+def find(patterns: List[str]) -> None:
     """Seach in local bibliographies"""
     with commands.run.open() as bib:
-        for bibitem in bib.search(pattern):
+        for bibitem in bib.search(patterns):
             sys.stdout.write(str(bibitem) + '\n')
