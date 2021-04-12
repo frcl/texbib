@@ -1,6 +1,7 @@
 import re
 from typing import Tuple, Optional
 from pathlib import Path
+import requests
 from ..schemes import scheme_handler
 
 
@@ -25,7 +26,12 @@ def from_arxiv(handle: str) -> Tuple[Optional[str], Optional[Path]]:
         if not match:
             raise ValueError('Invalid arXiv handle')
 
-    pdf_url = f'https://arxiv.org/pdf/{match.group(1)}'
+    bibtex_url = f'https://arxiv.org/bibtex/{match.group(1)}'
+    arxiv_response = requests.get(bibtex_url)
+    arxiv_response.raise_for_status()
+    bibtex = arxiv_response.text
+
+    # pdf_url = f'https://arxiv.org/pdf/{match.group(1)}'
     # TODO: download pdf
 
-    # TODO: bibtex
+    return bibtex, None
