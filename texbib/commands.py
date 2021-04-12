@@ -118,7 +118,9 @@ def delete(bibname: str) -> None:
     path = commands.run.bib_path(bibname)
     if path.exists():
         if commands.run.ask(f'Really delete "{bibname}"?', default=False):
-            path.unlink()
+            for p in path.parent.iterdir():
+                p.unlink()
+            path.parent.rmdir()
     else:
         commands.run.event(Events.FileNotFound,
                            path,
