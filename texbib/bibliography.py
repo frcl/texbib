@@ -1,5 +1,6 @@
 import re
 import shelve
+import textwrap
 from pathlib import Path as Path
 from typing import Union
 
@@ -22,11 +23,10 @@ class BibItem(dict):
             raise TypeError
 
     def fromat_term(self):
-        info = [str(_ct(self['ID'], 'ID')),
-                '{} ({})'.format(self['author'],
-                                 self['year']),
-                self['title']]
-        return '\n\t'.join(info)
+        info_lines = [str(_ct(self['ID'], 'ID'))] + textwrap.wrap(
+            '[{}, {}]'.format(self['author'], self['year'])
+        ) + textwrap.wrap(str(_ct(self['title'], 'HL')))
+        return '\n\t'.join(info_lines)
 
 
 class Bibliography:
