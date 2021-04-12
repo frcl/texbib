@@ -21,7 +21,7 @@ class BibItem(dict):
         else:
             raise TypeError
 
-    def __str__(self):
+    def fromat_term(self):
         info = [str(_ct(self['ID'], 'ID')),
                 '{} ({})'.format(self['author'],
                                  self['year']),
