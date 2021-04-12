@@ -1,12 +1,14 @@
 import re
 from typing import Tuple, Optional
 from pathlib import Path
+from ..schemes import scheme_handler
 
 
 ARXIV = re.compile(r'ar[xX]iv:(\d{4}\.\d*(?:v\d)?)')
 ARXIV_OLDSTYLE = re.compile(r'ar[xX]iv:([a-zA-Z.]*/\d*)')
 
 
+@scheme_handler('arxiv', 'arXiv')
 def from_arxiv(handle: str) -> Tuple[Optional[str], Optional[Path]]:
     """Get a paper from arXiv.
 

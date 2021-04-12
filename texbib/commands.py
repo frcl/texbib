@@ -3,9 +3,11 @@ import sys
 from pathlib import Path
 from typing import List, Optional
 
-from texbib.bibliography import Bibliography
-from texbib.utils import Levels, Events
-from texbib.sources import from_doi, from_arxiv, from_isbn
+from .bibliography import Bibliography
+from .utils import Levels, Events
+from .sources import from_isbn
+
+from .schemes import SCHEMES, EXTENSIONS
 
 
 class commands(dict): # pylint: disable=invalid-name
@@ -38,39 +40,28 @@ class commands(dict): # pylint: disable=invalid-name
 def add(objects: List[str]) -> None:
     """Add some resources to the active bibliography"""
     for obj in objects:
-        if obj.lower().startswith('doi:') or 'doi.org' in obj:
-            try:
-                bibtex, pdf_path = from_doi(obj)
-            except Exception as exc:
-                commands.run.event(Events.FailedAccess, obj,
-                                   Levels.error, exc)
-                continue
-            # if pdf_path:
-                # TODO: store pdf_path in database
-        elif obj.lower().startswith('arxiv:'):
-            print('adding from arxiv not implemented')
-            continue
+        parts = obj.split(':')
+        if len(parts) > 1 and parts[0] in SCHEMES:
+            bibtex, _ = SCHEMES[parts[0]](obj)
         elif re.match('^[0-9-]*$', obj):
             bibtex, _ = from_isbn(obj)
         else:
             path = Path(obj)
-            if path.exists():
-                # if path.suffix == '.pdf':
-                    # TODO: read metadata from pdf
-                # elif path.suffix == '.bib':
-                if path.suffix in ('.bib', '.bibtex'):
-                    with path.open() as infile:
-                        bibtex = infile.read()
-            else:
+            if not path.exists():
                 commands.run.event(Events.FileNotFound, path, Levels.error,
                                    Exception('None'))
                 continue
+            elif path.suffix not in EXTENSIONS:
+                raise NotImplementedError
+            else:
+                bibtex, _ = EXTENSIONS[path.suffix](path)
+
         if bibtex:
             with commands.run.open('w') as bib:
                 added_keys = bib.update(bibtex)
             print('\n'.join(added_keys))
-            # for bibitem in bibtex:
-            #   print(bibitem['id'])
+        else:
+            print(f'{obj}: no data', file=sys.stderr)
 
 
 @commands.register
