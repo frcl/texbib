@@ -1,14 +1,15 @@
 import re
 from typing import Tuple, Optional
 from pathlib import Path
-import bs4
 import requests
+from ..schemes import scheme_handler
 
 
 DOI = re.compile(r'doi:([0-9.]*)/(.*)')
 DOI_URL = re.compile(r'https?://doi.org/([0-9.]*)/([^/]*)')
 
 
+@scheme_handler('doi', 'DOI')
 def from_doi(doi: str) -> Tuple[Optional[str], Optional[Path]]:
     """Get resource from DOI.
 
@@ -24,13 +25,6 @@ def from_doi(doi: str) -> Tuple[Optional[str], Optional[Path]]:
         raise ValueError('Invalid DOI')
 
     url = f'https://doi.org/{match.group(1)}%2F{match.group(2)}'
-    # response = requests.get(url)
-    # soup = bs4.BeautifulSoup(response.text)
-    # pdf_urls = soup.find_all('a', {'href': re.compile('.*\.pdf')})
-    # if pdf_urls:
-        #TODO
-
-    # alternative: sci-hub
 
     crossref_url = (f'https://api.crossref.org/works/{match.group(1)}%2F'
                     f'{match.group(2)}/transform/application/x-bibtex')
