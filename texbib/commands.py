@@ -142,7 +142,7 @@ def checkout(bibname: str) -> None:
 def list() -> None:
     """List all available bibliographies"""
     for bibpath in commands.run.bibdir.iterdir():
-        if bibpath.is_dir() and (bibpath/'metadata.db').exists():
+        if bibpath.is_dir():
             pre = '*' if bibpath.name == commands.run.active_name else ' '
             sys.stdout.write('{} {}\n'.format(pre, bibpath.stem))
 
@@ -154,7 +154,7 @@ def show(bibname: Optional[str] = None) -> None:
            else commands.run.active_path
     with Bibliography(path, 'r') as bib:
         for bibitem in bib.values():
-            sys.stdout.write(str(bibitem) + '\n')
+            print(bibitem.fromat_term())
 
 
 @commands.register
@@ -162,4 +162,4 @@ def find(patterns: List[str]) -> None:
     """Seach in local bibliographies"""
     with commands.run.open() as bib:
         for bibitem in bib.search(patterns):
-            sys.stdout.write(str(bibitem) + '\n')
+            print(bibitem.fromat_term())
