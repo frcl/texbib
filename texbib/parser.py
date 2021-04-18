@@ -7,10 +7,7 @@ def loads(bibtexcode):
     """Reads a string with bibtex data and returns a dictionary of
     the references with IDs as Keys. If a reference contains no ID,
     one is generated from the data. Raises if bibtexcode is not valid."""
-    if not bibtexcode:
-        return {}
-    else:
-        return _loads(bibtexcode).get_entry_dict()
+    return _loads(bibtexcode).get_entry_dict()
 
 def dumps(bib):
     """Read a dict shaped like one created by `loads`

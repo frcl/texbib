@@ -2,29 +2,30 @@ import pytest
 
 
 def test_creation(commands):
-    commands['init']('foo')
-    assert commands.run.bib_path('foo').exists()
+    create = commands['create']
+    create('foo')
+    assert commands.run.bibdir.joinpath('foo.db').exists()
 
 
 def test_ask_for_overwrite(commands, capsys, monkeypatch):
-    commands['init']('bar')
-
+    create = commands['create']
     monkeypatch.setattr(commands.run, 'input', lambda: 'y')
-    with commands.run.open('w') as bib:
-        bib.update(
-            """@book{foo,
-                author = "Mr. Mister",
-                year = 1999,
-                title = "The title"
-            }""")
-    commands['init']('bar')
+    create('bar')
+    commands.run.active.update(
+        """@book{foo,
+            author = "Mr. Mister",
+            year = 1999,
+            title = "The title"
+        }""")
+    create('bar')
     out, _ = capsys.readouterr()
     assert 'Overwrite?' in out
-    assert commands.run.active_path.exists()
+    assert commands.run.active
 
 
 def test_invalid_name(commands, capsys):
+    create = commands['create']
     with pytest.raises(SystemExit):
-        commands['init']('')
+        create('')
     _, err = capsys.readouterr()
     assert 'InvalidName' in err

@@ -2,86 +2,83 @@ import os
 import sys
 import json
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 from texbib.bibliography import Bibliography
 from texbib.utils import Events, Levels
 
 
-class RuntimeInstance:
+class RuntimeInstance(object):
     """Class for managing the runtime environment for bib to run in.
 
     Consturctor Arguments:
-        debug (bool): Indicate if to run in debug mode
-        bibdir (pathlib.Path): base directory for runtime
+    - mode: str
+        One of ('prod', 'debug', 'fake')
+    - fakedir: pathlib.Path
+        If mode is 'fake', used as bibdir. Ignored otherwise.
     """
     debug_msg = 'bib: {exc}: {exc_msg} ({level}, {bib_msg})'
     error_msg = 'bib: {level} {bib_msg}'
 
     input = input
 
-    def __init__(self, debug: bool, bibdir: Optional[Path] = None):
+    def __init__(self, mode: str, fakedir: Union[str, Path, None] = None):
 
-        self.debug = debug
+        # bool comparrison is faster than string comparrison
+        self.debug = bool(mode == 'debug')
 
         # use fakedir if a fake runtime is requested (for testing)
-        if bibdir:
-            self.bibdir = bibdir
-        elif os.environ.get('TEXBIBDIR'):
-            self.bibdir = Path(os.environ.get('TEXBIBDIR')).expanduser()
+        if mode == 'fake' and fakedir:
+            self.bibdir = Path(fakedir)
         else:
-            confdir = os.environ.get('XDG_CONFIG_HOME', '~/.config')
-            self.bibdir = (Path(confdir)/'bib').expanduser()
+            self.bibdir = Path(os.environ.get('TEXBIBDIR', '~/.bib'))\
+                                .expanduser()
 
-        if not self.bibdir.exists():
-            self.bibdir.mkdir(parents=True)
+        self.state_path = self.bibdir.joinpath('active')
 
-        self.state_path = self.bibdir/'ACTIVE'
-
-        # read state
+        # get active bibname
         if self.state_path.exists():
             with self.state_path.open() as state_file:
-                self.state = json.load(state_file)
+                self.active_name = json.load(state_file)['bib']
         else:
-            self.state = {}
-            self.activate('default')
+            self.active_name = 'default'
 
-    @property
-    def active_name(self) -> str:
-        return self.state['bib']
+        # open database
+        self.active_path = self.bibdir.joinpath(self.active_name + '.db')
+        self.lock_path = self.bibdir.joinpath(self.active_name + '.lock')
+        self.lock()
+        self.active = Bibliography(self.active_path, mode='c')
 
-    @property
-    def active_path(self) -> Path:
-        return self.bib_path(self.state['bib'])
+    def __del__(self):
+        self.active.close()
+        self.unlock()
 
-    def bib_path(self, bibname) -> Path:
-        return self.bibdir/bibname/'metadata.db'
+    def lock(self):
+        """Create a lock in the active bibliography"""
+        self.lock_path.touch() # pylint: disable=no-member
 
-    def is_bib(self, bibname: str) -> bool:
-        return self.bib_path(bibname).exists()
-
-    def open(self, mode: str = 'r') -> Bibliography:
-        """Open bibliography with name `bibname`.
-        If it does not exist, create it.
-
-        Returns:
-            texbib.Bibliography
-        """
-        return Bibliography(self.active_path, mode)
+    def unlock(self):
+        """Destroy the lock in the active bibliography"""
+        self.lock_path.unlink() # pylint: disable=no-member
 
     def activate(self, bibname: str):
-        """
+        """Use bibliography with name `bibname` as new active bibliography.
+        If it does not exist, create it.
+
         Arguments:
-            bibname (str): name of the database, must not contain spaces
+        - bibname: str
         """
-        if not bibname or ' ' in bibname:
-            raise ValueError('Invalid bib name "{}"'.format(bibname))
-        self.state['bib'] = bibname
+        if not bibname:
+            raise ValueError('Cannot create bibliography without name')
+        self.active.close()
+        self.unlock()
+        self.active_name = bibname
+        self.active_path = self.bibdir.joinpath(self.active_name + '.db')
+        self.lock_path = self.bibdir.joinpath(self.active_name + '.lock')
+        self.lock()
+        self.active = Bibliography(self.active_path, 'c')
         with self.state_path.open('w') as state_file: # pylint: disable=no-member
-            json.dump(self.state, state_file)
-        if not self.active_path.exists():
-            self.active_path.parent.mkdir(exist_ok=True)
-            Bibliography(self.active_path, 'c')
+            json.dump({'bib': self.active_name}, state_file)
 
     def event(self, event: Events,
               info: str,
