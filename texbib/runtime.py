@@ -58,7 +58,7 @@ class RuntimeInstance:
         return self.bibdir/bibname/'metadata.db'
 
     def is_bib(self, bibname: str) -> bool:
-        return self.bib_path(bibname).parent.exists()
+        return self.bib_path(bibname).exists()
 
     def open(self, mode: str = 'r') -> Bibliography:
         """Open bibliography with name `bibname`.
