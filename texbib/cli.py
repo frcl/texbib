@@ -23,17 +23,16 @@ def main(args):
     cmd = args['command']
     del args['command']
 
-    # the validity of the command has already been checked by the ArgumentParser
     cmd_func = cmds[cmd]
     status = cmd_func(**args)
 
     if status == NotImplemented:
-        print('bib: not implemented')
+        print('texbib: not implemented')
 
 
 def parse_args():
     argp = argparse.ArgumentParser(
-        prog='bib',
+        prog='texbib',
         description='Texbib is a program that helps '
         'you to manage your BibTeX references.')
 
@@ -41,8 +40,7 @@ def parse_args():
                       action='version',
                       version='%(prog)s ' + __version__)
 
-    subcmdparsers = argp.add_subparsers(title='commands', dest='command',
-                                        metavar='command', required=True)
+    subcmdparsers = argp.add_subparsers(title='commands', dest='command', metavar='command')
 
     for cmd in commands.dict:
         cmdhelp = commands.dict[cmd].__doc__

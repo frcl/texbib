@@ -9,16 +9,16 @@ from texbib.utils import Events, Levels
 
 
 class RuntimeInstance(object):
-    """Class for managing the runtime environment for bib to run in.
+    """Class for managing the runtime environment for texbib to run in.
 
     Consturctor Arguments:
     - mode: str
         One of ('prod', 'debug', 'fake')
     - fakedir: pathlib.Path
-        If mode is 'fake', used as bibdir. Ignored otherwise.
+        If mode is 'fake', used as texbibdir. Ignored otherwise.
     """
-    debug_msg = 'bib: {exc}: {exc_msg} ({level}, {bib_msg})'
-    error_msg = 'bib: {level} {bib_msg}'
+    debug_msg = 'texbib: {exc}: {exc_msg} ({level}, {texbib_msg})'
+    error_msg = 'texbib: {level} {texbib_msg}'
 
     input = input
 
@@ -29,12 +29,12 @@ class RuntimeInstance(object):
 
         # use fakedir if a fake runtime is requested (for testing)
         if mode == 'fake' and fakedir:
-            self.bibdir = Path(fakedir)
+            self.texbibdir = Path(fakedir)
         else:
-            self.bibdir = Path(os.environ.get('TEXBIBDIR', '~/.bib'))\
+            self.texbibdir = Path(os.environ.get('TEXBIBDIR', '~/.texbib'))\
                                 .expanduser()
 
-        self.state_path = self.bibdir.joinpath('active')
+        self.state_path = self.texbibdir.joinpath('active')
 
         # get active bibname
         if self.state_path.exists():
@@ -44,8 +44,8 @@ class RuntimeInstance(object):
             self.active_name = 'default'
 
         # open database
-        self.active_path = self.bibdir.joinpath(self.active_name + '.db')
-        self.lock_path = self.bibdir.joinpath(self.active_name + '.lock')
+        self.active_path = self.texbibdir.joinpath(self.active_name + '.db')
+        self.lock_path = self.texbibdir.joinpath(self.active_name + '.lock')
         self.lock()
         self.active = Bibliography(self.active_path, mode='c')
 
@@ -73,8 +73,8 @@ class RuntimeInstance(object):
         self.active.close()
         self.unlock()
         self.active_name = bibname
-        self.active_path = self.bibdir.joinpath(self.active_name + '.db')
-        self.lock_path = self.bibdir.joinpath(self.active_name + '.lock')
+        self.active_path = self.texbibdir.joinpath(self.active_name + '.db')
+        self.lock_path = self.texbibdir.joinpath(self.active_name + '.lock')
         self.lock()
         self.active = Bibliography(self.active_path, 'c')
         with self.state_path.open('w') as state_file: # pylint: disable=no-member
@@ -92,20 +92,20 @@ class RuntimeInstance(object):
         - level: utils.Levels
         - exc: Exception
         """
-        bib_msg = f'{event}: {info}'
+        texbib_msg = f'{event}: {info}'
 
         if self.debug:
             if exc:
                 msg = self.debug_msg.format(exc=type(exc).__name__,
                                             exc_msg=', '.join(exc.args),
                                             level=level,
-                                            bib_msg=bib_msg)
+                                            texbib_msg=texbib_msg)
             else:
                 msg = self.error_msg.format(level=level,
-                                            bib_msg=bib_msg)
+                                            texbib_msg=texbib_msg)
         else:
             msg = self.error_msg.format(level=level,
-                                        bib_msg=bib_msg)
+                                        texbib_msg=texbib_msg)
         # TODO: message without exception
 
         sys.stderr.write(msg)

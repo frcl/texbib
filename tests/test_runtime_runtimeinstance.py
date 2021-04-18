@@ -5,14 +5,14 @@ from texbib.utils import Events, Levels
 
 
 def test_init_state(init_runtime):
-    assert {path.name for path in init_runtime.bibdir.iterdir()} \
+    assert {path.name for path in init_runtime.texbibdir.iterdir()} \
             == {'default.db', 'default.lock'}
     init_runtime.activate('test')
-    assert 'test.db' in [path.name for path in init_runtime.bibdir.iterdir()]
+    assert 'test.db' in [path.name for path in init_runtime.texbibdir.iterdir()]
 
 
 def test_paths(runtime):
-    assert runtime.bibdir.is_dir()
+    assert runtime.texbibdir.is_dir()
     assert runtime.state_path.name == 'active'
     assert runtime.active_path.suffix == '.db'
     assert runtime.lock_path.suffix == '.lock'
@@ -40,7 +40,7 @@ def test_activate(runtime):
 def test_event(runtime, capsys):
     runtime.event(Events.FileNotFound, 'filename.foo', Levels.warning, None)
     _, err = capsys.readouterr()
-    assert 'bib' in err
+    assert 'texbib' in err
     assert 'FileNotFound' in err
 
 

@@ -6,7 +6,7 @@ def test_existing(commands):
     commands['open'](testbib)
     assert commands.run.active_name == testbib
     assert commands.run.active.path.exists()
-    with open(commands.run.bibdir.joinpath('active')) as statefile:
+    with open(commands.run.texbibdir.joinpath('active')) as statefile:
         assert json.load(statefile)['bib'] == testbib
 
 
@@ -14,7 +14,7 @@ def test_non_existing(commands, monkeypatch):
     testbib = 'nobib'
     monkeypatch.setattr(commands.run, 'input', lambda: 'n')
     commands['open'](testbib)
-    assert not commands.run.bibdir.joinpath(testbib + '.db').exists()
+    assert not commands.run.texbibdir.joinpath(testbib + '.db').exists()
     monkeypatch.setattr(commands.run, 'input', lambda: 'y')
     commands['open'](testbib)
     assert commands.run.active.path.exists()
@@ -26,7 +26,7 @@ def test_already_active(commands, capsys):
     assert commands.run.active_name == testbib
     commands['open'](testbib)
     assert commands.run.active_name == testbib
-    with commands.run.bibdir.joinpath('active').open() as statefile:
+    with commands.run.texbibdir.joinpath('active').open() as statefile:
         assert json.load(statefile)['bib'] == testbib
     _, err = capsys.readouterr()
     assert 'already active' in err
@@ -37,6 +37,6 @@ def test_already_active(commands, capsys):
     # commands['open'](testbib)
     # assert init_commands.run.active_name == testbib
     # assert init_commands.run.active.path.exists()
-    # assert init_commands.run.bibdir.joinpath('active').exists()
-    # with open(init_commands.run.bibdir.joinpath('active')) as statefile:
+    # assert init_commands.run.texbibdir.joinpath('active').exists()
+    # with open(init_commands.run.texbibdir.joinpath('active')) as statefile:
         # assert json.load(statefile)['bib'] == testbib
