@@ -70,19 +70,15 @@ class Bibliography:
     def update(self, data):
         """Simular to dict.update. Data can be
         either a Bibliogrphy or a BibTex string."""
-        added_keys = []
         if isinstance(data, str):
             entries = loads(data)
             for key in entries:
                 self[key] = BibItem(entries[key])
-                added_keys.append(key)
         elif isinstance(data, Bibliography):
             for key in data.ids():
                 self[key] = data[key]
-                added_keys.append(key)
         else:
-            raise TypeError(f'Can not read {type(data)}, need Bibliography')
-        return added_keys
+            raise TypeError('Can not read {}'.format(type(data)))
 
     def remove(self, key: str):
         del self.db[key]
