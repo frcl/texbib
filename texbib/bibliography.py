@@ -4,8 +4,9 @@ import textwrap
 from pathlib import Path as Path
 from typing import Union
 
-from texbib.parser import loads, dumps
-from texbib.colors import ColoredText as _ct
+from .parser import loads, dumps
+from .colors import ColoredText as _c
+from .term_utils import indented, tex2term
 
 
 class BibItem(dict):
@@ -22,11 +23,22 @@ class BibItem(dict):
         else:
             raise TypeError
 
-    def fromat_term(self):
-        info_lines = [str(_ct(self['ID'], 'ID'))] + textwrap.wrap(
-            '[{}, {}]'.format(self['author'], self['year'])
-        ) + textwrap.wrap(str(_ct(self['title'], 'HL')))
-        return '\n\t'.join(info_lines)
+    def fromat_term(self) -> str:
+        # full paper title
+        info_lines = textwrap.wrap(tex2term(self['title']))
+        # shortend author list
+        # (line_width = 80, author sting < 67)
+        authors_string = self['author'] if len(self['author']) < 67 \
+                                        else self.authors[0] + ' et al.'
+        info_lines += ['{}: {}'.format(_c('Author(s)', 'r'), tex2term(authors_string))]
+        if 'doi' in self:
+            info_lines += [self['doi']]
+        return '\n'.join([str(_c(self['ID'], 'm'))]+list(indented(info_lines)))
+
+    @property
+    def authors(self) -> list[str]:
+        sep = ' and '
+        return self['author'].split(sep)
 
 
 class Bibliography:
