@@ -1,7 +1,7 @@
 *.pyc
 *.pyo
 __pycache__
-.*cache
+.cache
 *.egg-info
 dist
 *~
