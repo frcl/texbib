@@ -6,13 +6,13 @@ def test_adding_file(commands, tmpdir):
             year = 1999,
             title = "The title"
         }""")
-    commands['add']([str(path)])
+    commands['add']([path])
     with commands.run.open() as bib:
         assert 'foo' in bib.db.keys()
 
 
 def test_skip_non_existing(commands, tmpdir, capsys):
-    commands['add']([str(tmpdir.join('foo.bib'))])
+    commands['add']([tmpdir.join('foo.bib')])
     _, err = capsys.readouterr()
     assert 'FileNotFound' in err
 

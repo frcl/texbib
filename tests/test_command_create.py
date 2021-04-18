@@ -19,7 +19,7 @@ def test_ask_for_overwrite(commands, capsys, monkeypatch):
             }""")
     commands['init']('bar')
     out, _ = capsys.readouterr()
-    assert 'Overwrite' in out
+    assert 'Overwrite?' in out
     assert commands.run.active_path.exists()
 
 
