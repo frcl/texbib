@@ -6,7 +6,6 @@ class Events(Enum):
     IdNotFound = 2
     NoEffect = 3
     InvalidName = 4
-    FailedAccess = 5
 
     def __str__(self):
         return '{event}'.format(event=self.name)

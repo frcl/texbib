@@ -35,12 +35,8 @@ setup(
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
     ],
     keywords='bibtex latex science writing',
-    packages=['texbib', 'texbib.sources'],
-    install_requires=[
-        'bibtexparser',
-        'requests',
-        'isbnlib',
-    ],
+    packages=['texbib'],
+    install_requires=['bibtexparser'],
     extras_require={
         'test': ['pytest'],
     },

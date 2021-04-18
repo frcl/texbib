@@ -109,17 +109,12 @@ class Bibliography:
         code of all items in the bibliography"""
         return dumps(self)
 
-    def search(self, patterns, ids_only=False):
-        """Find all matches of the pattern in the bibliography."""
-        if ids_only:
-            for key in self.ids():
-                if all(re.search(pat, key) for pat in patterns):
-                    yield self[key]
-        else:
-            for key, val in self.items():
-                if all(any(re.search(pat, v.lower()) for v in val.values())
-                       for pat in patterns):
-                    yield self[key]
+    def search(self, pattern):
+        """Find all matches of the pattern in the bibliography.
+        Only goes through IDs at the moment."""
+        for key in self.ids():
+            if re.search(pattern, key):
+                yield self[key]
 
     def cleanup(self):
         """Try to reduce memory usage, by reorganizing
