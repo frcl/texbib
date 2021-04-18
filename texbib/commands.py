@@ -67,11 +67,10 @@ def dump(outfile: Optional[str] = None) -> None:
     if outfile:
         path = Path(outfile)
     else:
-        path = Path(f'./{commands.run.active_name}.bib')
+        path = Path('./{}.bib'.format(commands.run.active_name))
     with path.open('w') as dumpfile, \
          commands.run.open() as bib:
         dumpfile.write(bib.bibtex())
-    print(f'Wrote to {path}')
 
 
 @commands.register
@@ -84,9 +83,7 @@ def init(bibname: str) -> None:
                            None)
     else:
         if commands.run.is_bib(bibname):
-            if commands.run.ask(f'Bib "{bibname}" exists. '
-                                'Overwrite it, deleting all content?',
-                                default=False):
+            if commands.run.ask('Bib exists. Overwrite?', default=False):
                 commands.run.bib_path(bibname).unlink()
                 commands.run.activate(bibname)
             else:
@@ -100,7 +97,7 @@ def delete(bibname: str) -> None:
     """Delete a bibliography"""
     path = commands.run.bib_path(bibname)
     if path.exists():
-        if commands.run.ask(f'Really delete "{bibname}"?', default=False):
+        if commands.run.ask('Really delete {}?'.format(bibname), default=False):
             path.unlink()
     else:
         commands.run.event(Events.FileNotFound,
@@ -115,7 +112,7 @@ def checkout(bibname: str) -> None:
     if bibname == commands.run.active_name:
         print(f'Already using "{bibname}"')
     elif commands.run.is_bib(bibname) or commands.run.ask(
-            f'Bib "{bibname}" doesn\'t exist. Create it?', default=True):
+            'Bib doesn\'t exist. Create it?', default=True):
         commands.run.activate(bibname)
     else:
         print('Aborted')
