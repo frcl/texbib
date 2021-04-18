@@ -1,9 +1,2 @@
-*.pyc
-*.pyo
 __pycache__
 .cache
-*.egg-info
-dist
-*~
-.*.swp
-#*#
