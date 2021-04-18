@@ -10,7 +10,7 @@ def version():
 
 
 def readme():
-    with open('readme.md', 'r') as readme_file:
+    with open('README.md', 'r') as readme_file:
         _readme = readme_file.read()
     return _readme
 
