@@ -20,8 +20,8 @@ def main(args):
 
     cmds = commands()
 
-    cmd = args['command']
-    del args['command']
+    cmd = args['subcommand']
+    del args['subcommand']
 
     cmd_func = cmds[cmd]
     status = cmd_func(**args)
@@ -40,11 +40,11 @@ def parse_args():
                       action='version',
                       version='%(prog)s ' + __version__)
 
-    subcmdparsers = argp.add_subparsers(title='commands', dest='command', metavar='command')
+    subcmdparsers = argp.add_subparsers(dest='subcommand',
+                                        help='Texbib command to be executed')
 
     for cmd in commands.dict:
-        cmdhelp = commands.dict[cmd].__doc__
-        subp = subcmdparsers.add_parser(cmd, help=cmdhelp)
+        subp = subcmdparsers.add_parser(cmd)
         subcmd_sig = inspect.signature(commands.dict[cmd])
         for name, param in subcmd_sig.parameters.items():
             if param.annotation == typing.List[str]:
