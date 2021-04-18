@@ -50,13 +50,13 @@ def add(filenames: List[str]) -> None:
 @commands.register
 def rm(objects: List[str]) -> None:
     """Remove a reference from the active bibliography"""
-    for identifier in objects:
+    for identifyer in objects:
         try:
             with commands.run.open('w') as bib:
-                bib.remove(identifier)
+                bib.remove(identifyer)
         except KeyError as exc:
             commands.run.event(Events.IdNotFound,
-                               identifier,
+                               identifyer,
                                Levels.error,
                                exc)
 
