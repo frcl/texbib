@@ -28,21 +28,23 @@ Later you probably want to create a new file with all the references in your doc
 Use the handy `dump` command for that.
 ```
 $ bib dump
-Wrote to default.bib
 ```
+
 To remove a single item with ID `foo2000` from the global bibliography
 ```
 $ bib rm foo2000
 ```
+
 You can find out what references are in the bibliography with
 ```
-$ bib show
+$ xbib show
 ```
 
+
 ### Using Bibliographies
-You can group your references into bibliographies. To create one called `myBib`
+You can group your references into bibliographies. To create one called `fooBib`
 ```
-bib init myBib
+bib create fooBib
 ```
 After creation it is your new active bibliography.
 Everything you add and remove will be appliyed to it instead of the default one.
@@ -50,16 +52,16 @@ Everything you add and remove will be appliyed to it instead of the default one.
 To see what bibliographies exist and which is active
 ```
 $ bib list
-  default
-* myBib
 ```
-To change the active bibliography to an existing one use the `checkout` command.
+
+To change the active bibliography to an existing one use the `open` command.
 ```
-$ bib checkout default
+$ bib open fooBib
 ```
+
 A bibliography can be removed with
 ```
-$ bib delete myBib
+$ bib delete fooBib
 ```
 
 <!-- TODO: API section -->
