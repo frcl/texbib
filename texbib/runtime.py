@@ -55,7 +55,7 @@ class RuntimeInstance:
         return self.bib_path(self.state['bib'])
 
     def bib_path(self, bibname) -> Path:
-        return self.bibdir/bibname/'metadata.db'
+        return self.bibdir/bibname/'data.db'
 
     def is_bib(self, bibname: str) -> bool:
         return self.bib_path(bibname).parent.exists()
