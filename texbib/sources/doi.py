@@ -5,7 +5,7 @@ import requests
 from ..schemes import scheme_handler
 
 
-DOI = re.compile(r'doi:([0-9.]*)/(.*)')
+DOI = re.compile(r'(?:doi|DOI):([0-9.]*)/(.*)')
 DOI_URL = re.compile(r'https?://doi.org/([0-9.]*)/([^/]*)')
 
 
