@@ -133,3 +133,7 @@ class RuntimeInstance:
 
         des = self.input()
         return des.lower() == 'y' if des else default
+
+    def fail(self, msg: str):
+        print(self.error_msg.format(level='ERROR', bib_msg=msg))
+        sys.exit(1)

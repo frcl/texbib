@@ -152,6 +152,9 @@ def list() -> None:
 @commands.register
 def show(bibname: Optional[str] = None) -> None:
     """List the content of the active bibliography"""
+    if bibname and not commands.run.is_bib(bibname):
+        commands.run.fail(f'Bib "{bibname}" doesn\'t exist.')
+
     path = commands.run.bib_path(bibname) if bibname \
            else commands.run.active_path
     with Bibliography(path, 'r') as bib:
