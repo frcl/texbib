@@ -32,7 +32,7 @@ class BibItem(dict):
                                         else self.authors[0] + ' et al.'
         info_lines += ['{}: {}'.format(_c('Author(s)', 'r'), tex2term(authors_string))]
         if 'doi' in self:
-            info_lines += [self['doi']]
+            info_lines += [str(_c(self['doi'], 'y'))]
         return '\n'.join([str(_c(self['ID'], 'm'))]+list(indented(info_lines)))
 
     @property
@@ -119,7 +119,7 @@ class Bibliography:
     def bibtex(self):
         """Returns a single string with the bibtex
         code of all items in the bibliography"""
-        return dumps(self)
+        return dumps(self).strip()
 
     def search(self, patterns, ids_only=False):
         """Find all matches of the pattern in the bibliography."""
