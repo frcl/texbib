@@ -1,7 +1,8 @@
 # Bib
 Texbib is a program that helps you to manage your BibTeX references.
 
-[![Build Status](https://travis-ci.org/frcl/texbib.svg?branch=master)](https://travis-ci.org/frcl/texbib)
+[![Test status](https://github.com/frcl/texbib/actions/workflows/tests.yml/badge.svg)](https://github.com/frcl/texbib/actions/workflows/tests.yml)
+[![PyPI status](https://img.shields.io/pypi/v/texbib?style=flat-square)](https://pypi.org/project/texbib/)
 
 ## Installation
 To install bib use the following commands
