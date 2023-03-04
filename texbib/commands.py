@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from .bibliography import Bibliography
-from .utils import Levels, Events
+from .utils import Levels, Events, rm_tree
 from .sources import from_isbn
 
 from .schemes import SCHEMES, EXTENSIONS
@@ -118,12 +118,32 @@ def delete(bibname: str) -> None:
     path = commands.run.bib_path(bibname)
     if path.exists():
         if commands.run.ask(f'Really delete "{bibname}"?', default=False):
-            for p in path.parent.iterdir():
-                p.unlink()
-            path.parent.rmdir()
+            rm_tree(path.parent)
     else:
         commands.run.event(Events.FileNotFound,
                            path,
+                           Levels.critical,
+                           Exception('None'))
+
+
+@commands.register
+def rename(old_bibname: str, new_bibname: str) -> None:
+    """Rename a bibliography"""
+    old_path = commands.run.bib_path(old_bibname).parent
+    if old_path.exists():
+        new_path = commands.run.bib_path(new_bibname).parent
+        if not new_path.exists():
+            old_path.rename(new_path)
+        else:
+            commands.run.event(Events.InvalidName,
+                               new_path,
+                               Levels.critical,
+                               Exception('None'))
+        if old_bibname == commands.run.active_name:
+            commands.run.activate(new_bibname)
+    else:
+        commands.run.event(Events.FileNotFound,
+                           old_path,
                            Levels.critical,
                            Exception('None'))
 

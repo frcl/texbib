@@ -1,3 +1,4 @@
+from pathlib import Path
 from enum import Enum
 
 
@@ -21,3 +22,13 @@ class Levels(Enum):
     def __str__(self):
         return '{level}'\
                .format(level=self.name.upper()) # pylint: disable=no-member
+
+
+def rm_tree(path: Path):
+    path = Path(path)
+    for child in path.iterdir():
+        if child.is_dir():
+            rm_tree(child)
+        else:
+            child.unlink()
+    path.rmdir()

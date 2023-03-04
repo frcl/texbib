@@ -53,7 +53,7 @@ def parse_args():
 
     for cmd in commands.dict:
         cmdhelp = commands.dict[cmd].__doc__
-        aliases = [cmd[0]] if cmd != 'delete' else []
+        aliases = [cmd[0]] if cmd not in ('delete', 'rename') else []
         subp = subcmdparsers.add_parser(cmd, help=cmdhelp, aliases=aliases)
         subcmd_sig = inspect.signature(commands.dict[cmd])
         for name, param in subcmd_sig.parameters.items():

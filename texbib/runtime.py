@@ -52,10 +52,17 @@ class RuntimeInstance:
 
     @property
     def active_path(self) -> Path:
-        return self.bib_path(self.state['bib'])
+        return self.bib_path(self.active_name)
+
+    @property
+    def active_files_path(self) -> Path:
+        return self.files_path(self.active_name)
 
     def bib_path(self, bibname) -> Path:
         return self.bibdir/bibname/'data.db'
+
+    def files_path(self, bibname) -> Path:
+        return self.bibdir/bibname/'files'
 
     def is_bib(self, bibname: str) -> bool:
         return self.bib_path(bibname).parent.exists()
@@ -82,6 +89,8 @@ class RuntimeInstance:
         if not self.active_path.exists():
             self.active_path.parent.mkdir(exist_ok=True)
             Bibliography(self.active_path, 'c')
+        if not self.active_files_path.exists():
+            self.active_files_path.mkdir()
 
     def event(self, event: Events,
               info: str,
