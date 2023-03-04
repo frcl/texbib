@@ -8,7 +8,7 @@ def test_init_state(init_runtime):
     assert {path.name for path in init_runtime.bibdir.iterdir()} \
             == {'default', 'ACTIVE'}
     init_runtime.activate('test')
-    assert (init_runtime.bibdir/'test'/'metadata.db').exists()
+    assert (init_runtime.bibdir/'test'/'data.db').exists()
 
 
 def test_paths(runtime):
