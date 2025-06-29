@@ -93,7 +93,7 @@ class RuntimeInstance:
             bibname (str): name of the database, must not contain spaces
         """
         if not bibname or ' ' in bibname:
-            raise ValueError('Invalid bib name "{}"'.format(bibname))
+            raise ValueError(f'Invalid bib name "{bibname}"')
         self.state['bib'] = bibname
         with self.state_path.open('w') as state_file: # pylint: disable=no-member
             json.dump(self.state, state_file)

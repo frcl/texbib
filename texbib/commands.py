@@ -67,7 +67,7 @@ def add(objects: List[str]) -> None:
 
 
 @commands.register
-def link_file(identifier: str, filename: Optional[str]) -> None:
+def link_file(identifier: str, filename: str) -> None:
     """Add some resources to the active bibliography"""
     with commands.run.open('w') as bib:
         if identifier in bib:
@@ -75,7 +75,7 @@ def link_file(identifier: str, filename: Optional[str]) -> None:
             if path.exists():
                 shutil.copy(
                     path,
-                    commands.run.active_files_path/(identifier+'.pdf'),
+                    bib[identifier].pdf_path(commands.run.active_files_path),
                 )
             else:
                 commands.run.event(Events.FileNotFound,
@@ -94,9 +94,7 @@ def rm(objects: List[str]) -> None:
                 bib.remove(identifier)
         except KeyError as exc:
             commands.run.event(Events.IdNotFound,
-                               identifier,
-                               Levels.error,
-                               exc)
+                identifier, Levels.error, exc)
 
 
 @commands.register
@@ -193,6 +191,12 @@ def list() -> None:
 @commands.register
 def show(bibname: Optional[str] = None) -> None:
     """List the content of the active bibliography"""
+    find(patterns=[''], bibname=bibname)
+
+
+@commands.register
+def find(patterns: List[str], bibname: Optional[str] = None) -> None:
+    """Seach in local bibliographies"""
     if bibname and not commands.run.is_bib(bibname):
         commands.run.fail(f'Bib "{bibname}" doesn\'t exist.')
 
@@ -201,16 +205,8 @@ def show(bibname: Optional[str] = None) -> None:
     files_path = commands.run.files_path(bibname) if bibname \
                  else commands.run.active_files_path
     with Bibliography(path, 'r') as bib:
-        for bibitem in bib.values():
-            print(bibitem.format_term(file=(files_path/(bibitem['ID']+'.pdf')).exists()))
-
-
-@commands.register
-def find(patterns: List[str]) -> None:
-    """Seach in local bibliographies"""
-    with commands.run.open() as bib:
         for bibitem in bib.search(patterns):
-            print(bibitem.format_term())
+            print(bibitem.format_term(has_file=bibitem.pdf_path(files_path).exists()))
 
 
 @commands.register

@@ -23,7 +23,7 @@ class BibItem(dict):
         else:
             raise TypeError
 
-    def format_term(self, file: bool = False) -> str:
+    def format_term(self, has_file: bool = False) -> str:
         # full paper title
         info_lines = textwrap.wrap(tex2term(self.get('title', 'Unknown title')))
         # shortend author list
@@ -34,12 +34,16 @@ class BibItem(dict):
             info_lines += ['{}: {}'.format(_c('Author(s)', 'r'), tex2term(authors_string))]
         if 'doi' in self:
             info_lines += [str(_c('doi:'+self['doi'], 'y'))]
-        start_line = str(_c(self['ID'], 'm'))+(' [local file]' if file else '')
+        start_line = str(_c(self['ID'], 'm'))+(' [local file]' if has_file else '')
         return '\n'.join([start_line]+list(indented(info_lines)))
 
     @property
     def authors(self) -> list[str]:
         return re.split(r'\s(?:and|AND)\s', self['author'])
+
+    def pdf_path(self, bib_files_path: Path) -> Path:
+        return bib_files_path/(self['ID']+'.pdf')
+
 
 
 class Bibliography:
