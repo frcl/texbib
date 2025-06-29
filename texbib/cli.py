@@ -16,8 +16,9 @@ from texbib import __version__
 
 def main(args):
 
-    runtime = RuntimeInstance(args['debug'])
+    runtime = RuntimeInstance(debug=args['debug'], config_path=args['config'])
     del args['debug']
+    del args['config']
     commands.set_runtime(runtime)
 
     cmds = commands()

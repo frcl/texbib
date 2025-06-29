@@ -3,9 +3,11 @@ import sys
 import json
 from pathlib import Path
 from typing import Optional
+import appdirs
 
 from texbib.bibliography import Bibliography
 from texbib.utils import Events, Levels
+from texbib.settings import get_settings
 
 
 class RuntimeInstance:
@@ -20,21 +22,27 @@ class RuntimeInstance:
 
     input = input
 
-    def __init__(self, debug: bool, bibdir: Optional[Path] = None):
+    def __init__(self, debug: bool, bibdir: Optional[Path] = None, config_path: Optional[Path] = None):
 
         self.debug = debug
 
-        # use fakedir if a fake runtime is requested (for testing)
         if bibdir:
             self.bibdir = bibdir
-        elif os.environ.get('TEXBIBDIR'):
-            self.bibdir = Path(os.environ.get('TEXBIBDIR')).expanduser()
+        elif path := os.environ.get('TEXBIBDIR'):
+            self.bibdir = Path(path).expanduser()
         else:
-            confdir = os.environ.get('XDG_CONFIG_HOME', '~/.config')
-            self.bibdir = (Path(confdir)/'bib').expanduser()
+            self.bibdir = Path(appdirs.user_config_dir('bib'))
 
         if not self.bibdir.exists():
             self.bibdir.mkdir(parents=True)
+
+        if config_path and not config_path.exists():
+            self.fail('Given config file does not exist')
+
+        self.settings = get_settings(config_path or self.bibdir/'bib.conf')
+
+        # if bd := self.settings['core']['bibdir']:
+            # self.bibdir = bd
 
         self.state_path = self.bibdir/'ACTIVE'
 
@@ -129,7 +137,7 @@ class RuntimeInstance:
             sys.stdout.write('aborting...')
             sys.exit(1)
 
-    def ask(self, msg: str, default: bool = True):
+    def ask(self, msg: str, default: bool = True) -> bool:
         """Ask the user a yes/no question and get the answer as bool.
 
         Arguments:

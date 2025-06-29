@@ -1,7 +1,11 @@
+import warnings
 from typing import Tuple, Optional
 from pathlib import Path
-import isbnlib
-import isbnlib.registry
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    import isbnlib
+    import isbnlib.registry
 
 from ..schemes import scheme_handler
 

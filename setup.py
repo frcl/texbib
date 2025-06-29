@@ -37,6 +37,7 @@ setup(
     keywords='bibtex latex science writing',
     packages=['texbib', 'texbib.sources'],
     install_requires=[
+        'appdirs',
         'bibtexparser',
         'requests',
         'setuptools',
