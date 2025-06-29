@@ -68,8 +68,11 @@ class RuntimeInstance:
         return self.bib_path(bibname).parent.exists()
 
     def open(self, mode: str = 'r') -> Bibliography:
-        """Open bibliography with name `bibname`.
+        """Open the activate bibliography.
         If it does not exist, create it.
+
+        Arguments:
+            mode (str): If 'r' open bib in read mode, if 'w' in write mode
 
         Returns:
             texbib.Bibliography

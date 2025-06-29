@@ -24,7 +24,7 @@ def from_doi(doi: str) -> Tuple[Optional[str], Optional[Path]]:
     if not match:
         raise ValueError('Invalid DOI')
 
-    url = f'https://doi.org/{match.group(1)}%2F{match.group(2)}'
+    # url = f'https://doi.org/{match.group(1)}%2F{match.group(2)}'
 
     crossref_url = (f'https://api.crossref.org/works/{match.group(1)}%2F'
                     f'{match.group(2)}/transform/application/x-bibtex')

@@ -39,6 +39,7 @@ setup(
     install_requires=[
         'bibtexparser',
         'requests',
+        'setuptools',
         'isbnlib',
         'beautifulsoup4',
     ],
