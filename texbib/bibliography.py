@@ -130,7 +130,7 @@ class Bibliography:
                     yield self[key]
         else:
             for key, val in self.items():
-                if all(any(re.search(pat, v.lower()) for v in val.values())
+                if all(any(re.search(pat.lower(), v.lower()) for v in val.values())
                        for pat in patterns):
                     yield self[key]
 
