@@ -1,5 +1,7 @@
 import re
 import sys
+import shutil
+import subprocess
 from pathlib import Path
 from typing import List, Optional
 
@@ -62,6 +64,25 @@ def add(objects: List[str]) -> None:
             print('\n'.join(added_keys))
         else:
             print(f'{obj}: no data', file=sys.stderr)
+
+
+@commands.register
+def link_file(identifier: str, filename: Optional[str]) -> None:
+    """Add some resources to the active bibliography"""
+    with commands.run.open('w') as bib:
+        if identifier in bib:
+            path = Path(filename)
+            if path.exists():
+                shutil.copy(
+                    path,
+                    commands.run.active_files_path/(identifier+'.pdf'),
+                )
+            else:
+                commands.run.event(Events.FileNotFound,
+                    path, Levels.critical, Exception('None'))
+        else:
+            commands.run.event(Events.IdNotFound,
+                identifier, Levels.critical, Exception('None'))
 
 
 @commands.register
@@ -177,9 +198,11 @@ def show(bibname: Optional[str] = None) -> None:
 
     path = commands.run.bib_path(bibname) if bibname \
            else commands.run.active_path
+    files_path = commands.run.files_path(bibname) if bibname \
+                 else commands.run.active_files_path
     with Bibliography(path, 'r') as bib:
         for bibitem in bib.values():
-            print(bibitem.fromat_term())
+            print(bibitem.format_term(file=(files_path/(bibitem['ID']+'.pdf')).exists()))
 
 
 @commands.register
@@ -187,4 +210,15 @@ def find(patterns: List[str]) -> None:
     """Seach in local bibliographies"""
     with commands.run.open() as bib:
         for bibitem in bib.search(patterns):
-            print(bibitem.fromat_term())
+            print(bibitem.format_term())
+
+
+@commands.register
+def open(obj: str) -> None:
+    pdf_path = commands.run.active_files_path/(obj+'.pdf')
+    if pdf_path.exists():
+        pdf_reader = 'llpp'
+        subprocess.run([pdf_reader, pdf_path], check=True)
+    else:
+        commands.run.event(Events.FileNotFound,
+            pdf_path, Levels.critical, Exception('None'))

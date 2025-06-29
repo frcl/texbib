@@ -46,7 +46,7 @@ def parse_args():
 
     argp.add_argument('--version', action='version',
                       version='%(prog)s ' + __version__)
-    # argp.add_argument('-c', '--config', type=Path)
+    argp.add_argument('-c', '--config', type=Path)
     argp.add_argument('-d', '--debug', action='store_true')
 
     subcmdparsers = argp.add_subparsers(title='commands', dest='command',
@@ -54,7 +54,7 @@ def parse_args():
 
     for cmd in commands.dict:
         cmdhelp = commands.dict[cmd].__doc__
-        aliases = [cmd[0]] if cmd not in ('delete', 'rename') else []
+        aliases = [cmd[0]] if cmd not in ('delete', 'rename', 'link_file') else []
         subp = subcmdparsers.add_parser(cmd, help=cmdhelp, aliases=aliases)
         subcmd_sig = inspect.signature(commands.dict[cmd])
         for name, param in subcmd_sig.parameters.items():

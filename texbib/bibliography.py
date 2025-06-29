@@ -23,22 +23,23 @@ class BibItem(dict):
         else:
             raise TypeError
 
-    def fromat_term(self) -> str:
+    def format_term(self, file: bool = False) -> str:
         # full paper title
-        info_lines = textwrap.wrap(tex2term(self['title']))
+        info_lines = textwrap.wrap(tex2term(self.get('title', 'Unknown title')))
         # shortend author list
         # (line_width = 80, author sting < 67)
-        authors_string = self['author'] if len(self['author']) < 67 \
-                                        else self.authors[0] + ' et al.'
-        info_lines += ['{}: {}'.format(_c('Author(s)', 'r'), tex2term(authors_string))]
+        if 'author' in self:
+            authors_string = self['author'] if len(self['author']) < 67 \
+                                            else self.authors[0] + ' et al.'
+            info_lines += ['{}: {}'.format(_c('Author(s)', 'r'), tex2term(authors_string))]
         if 'doi' in self:
-            info_lines += [str(_c(self['doi'], 'y'))]
-        return '\n'.join([str(_c(self['ID'], 'm'))]+list(indented(info_lines)))
+            info_lines += [str(_c('doi:'+self['doi'], 'y'))]
+        start_line = str(_c(self['ID'], 'm'))+(' [local file]' if file else '')
+        return '\n'.join([start_line]+list(indented(info_lines)))
 
     @property
     def authors(self) -> list[str]:
-        sep = ' and '
-        return self['author'].split(sep)
+        return re.split(r'\s(?:and|AND)\s', self['author'])
 
 
 class Bibliography:
