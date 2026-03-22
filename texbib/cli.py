@@ -82,7 +82,8 @@ def parse_args():
         subcmd_sig = inspect.signature(cmd)
         for name, param in subcmd_sig.parameters.items():
             if param.annotation == typing.List[str]:
-                subp.add_argument(name, nargs='+')
+                # Make list arguments optional to support stdin-only usage
+                subp.add_argument(name, nargs='*', metavar=name.upper())
             elif param.annotation == typing.Union[str, None]:
                 subp.add_argument(name, nargs='?')
             elif param.annotation == bool:

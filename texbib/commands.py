@@ -40,25 +40,43 @@ class commands(dict): # pylint: disable=invalid-name
 
 @commands.register
 def add(objects: List[str]) -> ExitCode:
-    """Add some resources to the active bibliography"""
+    """Add some resources to the active bibliography
+    
+    Supports multiple input formats:
+    - Local files: bib add paper.bib
+    - DOI: bib add doi:10.1002/andp.19053220806
+    - arXiv: bib add arXiv:1306.4856
+    - ISBN: bib add 9780123456789
+    - stdin: cat paper.bib | bib add -
+    
+    Multiple sources can be combined in a single command.
+    """
     exit_code = ExitCode.SUCCESS
     for obj in objects:
-        parts = obj.split(':')
-        if len(parts) > 1 and parts[0] in SCHEMES:
-            bibtex, _ = SCHEMES[parts[0]](obj)
-        elif re.match('^[0-9-]*$', obj):
-            bibtex, _ = from_isbn(obj)
-        else:
-            path = Path(obj)
-            if not path.exists():
-                exc = FileNotFound(path)
-                commands.run.error(str(exc))
-                exit_code = exc.exit_code
+        if obj == '-':
+            # Read BibTeX from stdin
+            bibtex = sys.stdin.read()
+            if not bibtex.strip():
+                print('-: no data from stdin', file=sys.stderr)
+                exit_code = ExitCode.GENERAL_ERROR
                 continue
-            elif path.suffix not in EXTENSIONS:
-                raise NotImplementedError
+        else:
+            parts = obj.split(':')
+            if len(parts) > 1 and parts[0] in SCHEMES:
+                bibtex, _ = SCHEMES[parts[0]](obj)
+            elif re.match('^[0-9-]*$', obj):
+                bibtex, _ = from_isbn(obj)
             else:
-                bibtex, _ = EXTENSIONS[path.suffix](path)
+                path = Path(obj)
+                if not path.exists():
+                    exc = FileNotFound(path)
+                    commands.run.error(str(exc))
+                    exit_code = exc.exit_code
+                    continue
+                elif path.suffix not in EXTENSIONS:
+                    raise NotImplementedError
+                else:
+                    bibtex, _ = EXTENSIONS[path.suffix](path)
 
         if bibtex:
             with commands.run.open('w') as bib:
@@ -106,14 +124,14 @@ def rm(objects: List[str]) -> ExitCode:
 @commands.register
 def dump(outfile: Optional[str] = None) -> ExitCode:
     """Create a bibtex file with all references in active bibliography"""
-    if outfile:
-        path = Path(outfile)
-    else:
-        path = Path(f'./{commands.run.active_name}.bib')
-    with path.open('w') as dumpfile, \
-         commands.run.open() as bib:
-        dumpfile.write(bib.bibtex())
-    print(f'Wrote to {path}', file=sys.stderr)
+    with commands.run.open() as bib:
+        if not outfile or outfile == '-':
+            sys.stdout.write(bib.bibtex())
+        else:
+            path = Path(outfile)
+            with path.open('w') as dumpfile:
+                dumpfile.write(bib.bibtex())
+            print(f'Wrote to {path}', file=sys.stderr)
     return ExitCode.SUCCESS
 
 

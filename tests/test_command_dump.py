@@ -39,9 +39,9 @@ def test_empty_bib(init_commands, tmpdir):
         bib.update(text)
 
 
-def test_no_filename(commands, tmpdir):
-    commands.run.activate('test')
-    path = tmpdir.join('test.bib')
-    os.chdir(tmpdir)
+def test_no_filename(commands, capsys):
+    with commands.run.open('w') as bib:
+        bib.update(BIBCODE)
     commands['dump']()
-    assert path.exists()
+    out, _ = capsys.readouterr()
+    assert 'author = {Max Mustermann}' in out
