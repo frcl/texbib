@@ -12,7 +12,7 @@ from pathlib import Path
 
 from texbib.runtime import RuntimeInstance
 from texbib.commands import commands
-from texbib.errors import BibError
+from texbib.errors import BibError, ExitCode
 from texbib import __version__
 
 
@@ -57,7 +57,9 @@ def main(args):
 
     if status == NotImplemented:
         print('bib: not implemented', file=sys.stderr)
-        sys.exit(1)
+        sys.exit(ExitCode.GENERAL_ERROR)
+
+    sys.exit(status or ExitCode.SUCCESS)
 
 
 def parse_args():

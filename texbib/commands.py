@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from .bibliography import Bibliography
-from .errors import FileNotFound, IdNotFound, InvalidName
+from .errors import FileNotFound, IdNotFound, InvalidName, ExitCode
 from .sources import from_isbn
 
 from .schemes import SCHEMES, EXTENSIONS
@@ -39,8 +39,9 @@ class commands(dict): # pylint: disable=invalid-name
 
 
 @commands.register
-def add(objects: List[str]) -> None:
+def add(objects: List[str]) -> ExitCode:
     """Add some resources to the active bibliography"""
+    exit_code = ExitCode.SUCCESS
     for obj in objects:
         parts = obj.split(':')
         if len(parts) > 1 and parts[0] in SCHEMES:
@@ -50,7 +51,9 @@ def add(objects: List[str]) -> None:
         else:
             path = Path(obj)
             if not path.exists():
-                commands.run.error(str(FileNotFound(path)))
+                exc = FileNotFound(path)
+                commands.run.error(str(exc))
+                exit_code = exc.exit_code
                 continue
             elif path.suffix not in EXTENSIONS:
                 raise NotImplementedError
@@ -63,10 +66,13 @@ def add(objects: List[str]) -> None:
             print('\n'.join(added_keys))
         else:
             print(f'{obj}: no data', file=sys.stderr)
+            exit_code = ExitCode.GENERAL_ERROR
+
+    return exit_code
 
 
 @commands.register
-def link_file(identifier: str, filename: str) -> None:
+def link_file(identifier: str, filename: str) -> ExitCode:
     """Add some resources to the active bibliography"""
     with commands.run.open('w') as bib:
         if identifier in bib:
@@ -80,21 +86,25 @@ def link_file(identifier: str, filename: str) -> None:
                 raise FileNotFound(path)
         else:
             raise IdNotFound(identifier)
+    return ExitCode.SUCCESS
 
 
 @commands.register
-def rm(objects: List[str]) -> None:
+def rm(objects: List[str]) -> ExitCode:
     """Remove a reference from the active bibliography"""
+    status = ExitCode.SUCCESS
     for identifier in objects:
         try:
             with commands.run.open('w') as bib:
                 bib.remove(identifier)
         except KeyError:
             commands.run.error(str(IdNotFound(identifier)))
+            status = ExitCode.ID_NOT_FOUND
+    return status
 
 
 @commands.register
-def dump(outfile: Optional[str] = None) -> None:
+def dump(outfile: Optional[str] = None) -> ExitCode:
     """Create a bibtex file with all references in active bibliography"""
     if outfile:
         path = Path(outfile)
@@ -104,10 +114,11 @@ def dump(outfile: Optional[str] = None) -> None:
          commands.run.open() as bib:
         dumpfile.write(bib.bibtex())
     print(f'Wrote to {path}', file=sys.stderr)
+    return ExitCode.SUCCESS
 
 
 @commands.register
-def init(bibname: str) -> None:
+def init(bibname: str) -> ExitCode:
     """Create a new bibliography"""
     if (not bibname) or (' ' in bibname):
         raise InvalidName(repr(bibname), 'name must not be empty or contain spaces')
@@ -120,24 +131,30 @@ def init(bibname: str) -> None:
                 commands.run.activate(bibname)
             else:
                 print('Aborted.', file=sys.stderr)
+                return ExitCode.GENERAL_ERROR
         else:
             commands.run.activate(bibname)
+    return ExitCode.SUCCESS
 
 
 @commands.register
-def delete(bibname: str) -> None:
+def delete(bibname: str) -> ExitCode:
     """Delete a bibliography"""
     path = commands.run.bib_path(bibname)
     if path.exists():
         if commands.run.ask(f'Really delete "{bibname}"?', default=False):
             from .utils import rm_tree
             rm_tree(path.parent)
+        else:
+            print('Aborted.', file=sys.stderr)
+            return ExitCode.GENERAL_ERROR
     else:
         raise FileNotFound(path)
+    return ExitCode.SUCCESS
 
 
 @commands.register
-def rename(old_bibname: str, new_bibname: str) -> None:
+def rename(old_bibname: str, new_bibname: str) -> ExitCode:
     """Rename a bibliography"""
     old_path = commands.run.bib_path(old_bibname).parent
     if old_path.exists():
@@ -150,10 +167,11 @@ def rename(old_bibname: str, new_bibname: str) -> None:
             commands.run.activate(new_bibname)
     else:
         raise FileNotFound(old_path)
+    return ExitCode.SUCCESS
 
 
 @commands.register
-def checkout(bibname: str) -> None:
+def checkout(bibname: str) -> ExitCode:
     """Activate a bibliography"""
     if bibname == commands.run.active_name:
         print(f'Already using "{bibname}"', file=sys.stderr)
@@ -161,26 +179,30 @@ def checkout(bibname: str) -> None:
             f'Bib "{bibname}" doesn\'t exist. Create it?', default=True):
         commands.run.activate(bibname)
     else:
-        print('Aborted', file=sys.stderr)
+        print('Aborted.', file=sys.stderr)
+        return ExitCode.FILE_NOT_FOUND
+    return ExitCode.SUCCESS
 
 
 @commands.register
-def list() -> None:
+def list() -> ExitCode:
     """List all available bibliographies"""
     for bibpath in commands.run.bibdir.iterdir():
         if bibpath.is_dir():
             pre = '*' if bibpath.name == commands.run.active_name else ' '
             print('{} {}'.format(pre, bibpath.stem))
+    return ExitCode.SUCCESS
 
 
 @commands.register
-def show(bibname: Optional[str] = None) -> None:
+def show(bibname: Optional[str] = None) -> ExitCode:
     """List the content of the active bibliography"""
     find(patterns=[''], bibname=bibname)
+    return ExitCode.SUCCESS
 
 
 @commands.register
-def find(patterns: List[str], bibname: Optional[str] = None) -> None:
+def find(patterns: List[str], bibname: Optional[str] = None) -> ExitCode:
     """Seach in local bibliographies"""
     if bibname and not commands.run.is_bib(bibname):
         raise FileNotFound(f'Bibliography "{bibname}"')
@@ -189,16 +211,22 @@ def find(patterns: List[str], bibname: Optional[str] = None) -> None:
            else commands.run.active_path
     files_path = commands.run.files_path(bibname) if bibname \
                  else commands.run.active_files_path
+
+    found = False
     with Bibliography(path, 'r') as bib:
         for bibitem in bib.search(patterns):
             print(bibitem.format_term(has_file=bibitem.pdf_path(files_path).exists()))
+            found = True
+
+    return ExitCode.SUCCESS if found else ExitCode.GENERAL_ERROR
 
 
 @commands.register
-def open(obj: str) -> None:
+def open(obj: str) -> ExitCode:
     pdf_path = commands.run.active_files_path/(obj+'.pdf')
     if pdf_path.exists():
         pdf_reader = commands.run.settings['fulltext']['pdf_reader_cmd']
         subprocess.Popen([pdf_reader, pdf_path], start_new_session=True)
     else:
         raise FileNotFound(pdf_path)
+    return ExitCode.SUCCESS
