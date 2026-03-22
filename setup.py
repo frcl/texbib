@@ -26,12 +26,9 @@ setup(
     author_email='frcl@mailbox.org',
     license='GPLv3',
     classifiers=[
-        'Development Status :: 3 - Alpha',
         'Intended Audience :: Science/Research',
         'Environment :: Console',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
     ],
     keywords='bibtex latex science writing',
@@ -41,7 +38,7 @@ setup(
         'bibtexparser',
         'requests',
         'setuptools',
-        'isbnlib',
+        'isbnlib2',
         'beautifulsoup4',
     ],
     extras_require={

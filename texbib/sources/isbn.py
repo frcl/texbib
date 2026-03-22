@@ -5,10 +5,11 @@ from pathlib import Path
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     import isbnlib
-    to_bibtex = lambda x: isbnlib.dev._fmt._fmtbib('bibtex', x)
-
 
 from ..schemes import scheme_handler
+
+
+to_bibtex = lambda x: isbnlib.dev._fmt._fmtbib('bibtex', x)
 
 
 @scheme_handler('isbn', 'ISBN')
