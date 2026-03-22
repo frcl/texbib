@@ -2,6 +2,7 @@
 """
 Exception classes for texbib error handling.
 """
+from typing import Optional
 
 
 class BibError(Exception):
@@ -32,7 +33,7 @@ class IdNotFound(BibError):
 class InvalidName(BibError):
     """Raised when a bibliography name is invalid."""
 
-    def __init__(self, name: str, reason: str | None = None):
+    def __init__(self, name: str, reason: Optional[str] = None):
         msg = f"Invalid bibliography name: {name}"
         if reason:
             msg += f" ({reason})"
