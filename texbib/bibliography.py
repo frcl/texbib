@@ -86,7 +86,7 @@ class Bibliography:
 
     def update(self, data):
         """Simular to dict.update. Data can be
-        either a Bibliogrphy or a BibTex string."""
+        either a Bibliography or a BibTex string."""
         added_keys = []
         if isinstance(data, str):
             entries = loads(data)

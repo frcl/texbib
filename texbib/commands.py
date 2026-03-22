@@ -1,6 +1,8 @@
+import os
 import re
 import sys
 import shutil
+import tempfile
 import subprocess
 from pathlib import Path
 from typing import List, Optional
@@ -8,7 +10,7 @@ from typing import List, Optional
 from .bibliography import Bibliography
 from .errors import FileNotFound, IdNotFound, InvalidName, ExitCode
 from .sources import from_isbn
-
+from .parser import loads, dumps
 from .schemes import SCHEMES, EXTENSIONS
 
 
@@ -41,14 +43,14 @@ class commands(dict): # pylint: disable=invalid-name
 @commands.register
 def add(objects: List[str]) -> ExitCode:
     """Add some resources to the active bibliography
-    
+
     Supports multiple input formats:
     - Local files: bib add paper.bib
     - DOI: bib add doi:10.1002/andp.19053220806
     - arXiv: bib add arXiv:1306.4856
     - ISBN: bib add 9780123456789
     - stdin: cat paper.bib | bib add -
-    
+
     Multiple sources can be combined in a single command.
     """
     exit_code = ExitCode.SUCCESS
@@ -247,4 +249,46 @@ def open(obj: str) -> ExitCode:
         subprocess.Popen([pdf_reader, pdf_path], start_new_session=True)
     else:
         raise FileNotFound(pdf_path)
+    return ExitCode.SUCCESS
+
+
+@commands.register
+def edit(identifier: str) -> ExitCode:
+    """Edit a bibliography entry in $EDITOR"""
+    editor = commands.run.settings['edit']['editor'] \
+        or os.environ.get('EDITOR') \
+        or 'nano'
+
+    with commands.run.open('r') as bib, \
+        tempfile.NamedTemporaryFile(mode='w', suffix='.bib', delete=False) as tmp:
+        tmp_path = Path(tmp.name)
+        if identifier not in bib:
+            raise IdNotFound(identifier)
+
+        tmp.write(dumps({identifier: bib[identifier]}))
+
+    try:
+        subprocess.run([editor, tmp_path], check=True)
+
+        with tmp_path.open() as tmp:
+            edited_content = tmp.read()
+
+        edited_entries = loads(edited_content)
+
+        if len(edited_entries) != 1:
+            print('Invalid BibTeX change', file=sys.stderr)
+            return ExitCode.GENERAL_ERROR
+
+        new_id = next(iter(edited_entries))
+
+        with commands.run.open('w') as bib:
+            if identifier in bib:
+                bib.remove(identifier)
+            bib.update(edited_content)
+
+        print(f'Updated entry: {new_id}', file=sys.stderr)
+
+    finally:
+        tmp_path.unlink()
+
     return ExitCode.SUCCESS

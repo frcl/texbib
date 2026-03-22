@@ -31,8 +31,7 @@ def test_output(commands, capsys):
     # show = commands['show']
 
 
-@pytest.mark.xfail
 def test_non_existing_bib(commands, capsys):
-    commands['show']('F00Bar')
-    _, err = capsys.readouterr()
-    assert 'FileNotFound' in err
+    from texbib.errors import FileNotFound
+    with pytest.raises(FileNotFound):
+        commands['show']('F00Bar')

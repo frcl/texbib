@@ -27,7 +27,7 @@ def test_empty_list(commands):
 def test_adding_from_stdin(commands, tmpdir, monkeypatch, capsys):
     monkeypatch.setattr(
         sys, 'stdin',
-        type('StdinMock', (), {'read': lambda self: 
+        type('StdinMock', (), {'read': lambda self:
             '@book{test_stdin,\n'
             '    author = "Test Author",\n'
             '    year = 2024,\n'

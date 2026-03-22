@@ -62,4 +62,6 @@ def get_settings(config_path: Path):
         # .add_setting('bibdir', default=None)
     settings.add_section('fulltext') \
         .add_setting('pdf_reader_cmd', default='xdg-open %%')
+    settings.add_section('edit') \
+        .add_setting('editor', default='')
     return settings.read_settings(config_path)
