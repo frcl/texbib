@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from .bibliography import Bibliography
-from .utils import Levels, Events, rm_tree
+from .errors import FileNotFound, IdNotFound, InvalidName
 from .sources import from_isbn
 
 from .schemes import SCHEMES, EXTENSIONS
@@ -50,8 +50,7 @@ def add(objects: List[str]) -> None:
         else:
             path = Path(obj)
             if not path.exists():
-                commands.run.event(Events.FileNotFound, path, Levels.error,
-                                   Exception('None'))
+                commands.run.error(str(FileNotFound(path)))
                 continue
             elif path.suffix not in EXTENSIONS:
                 raise NotImplementedError
@@ -78,11 +77,9 @@ def link_file(identifier: str, filename: str) -> None:
                     bib[identifier].pdf_path(commands.run.active_files_path),
                 )
             else:
-                commands.run.event(Events.FileNotFound,
-                    path, Levels.critical, Exception('None'))
+                raise FileNotFound(path)
         else:
-            commands.run.event(Events.IdNotFound,
-                identifier, Levels.critical, Exception('None'))
+            raise IdNotFound(identifier)
 
 
 @commands.register
@@ -92,9 +89,8 @@ def rm(objects: List[str]) -> None:
         try:
             with commands.run.open('w') as bib:
                 bib.remove(identifier)
-        except KeyError as exc:
-            commands.run.event(Events.IdNotFound,
-                identifier, Levels.error, exc)
+        except KeyError:
+            commands.run.error(str(IdNotFound(identifier)))
 
 
 @commands.register
@@ -107,17 +103,14 @@ def dump(outfile: Optional[str] = None) -> None:
     with path.open('w') as dumpfile, \
          commands.run.open() as bib:
         dumpfile.write(bib.bibtex())
-    print(f'Wrote to {path}')
+    print(f'Wrote to {path}', file=sys.stderr)
 
 
 @commands.register
 def init(bibname: str) -> None:
     """Create a new bibliography"""
     if (not bibname) or (' ' in bibname):
-        commands.run.event(Events.InvalidName,
-                           repr(bibname),
-                           Levels.critical,
-                           None)
+        raise InvalidName(repr(bibname), 'name must not be empty or contain spaces')
     else:
         if commands.run.is_bib(bibname):
             if commands.run.ask(f'Bib "{bibname}" exists. '
@@ -126,7 +119,7 @@ def init(bibname: str) -> None:
                 commands.run.bib_path(bibname).unlink()
                 commands.run.activate(bibname)
             else:
-                print('Aborted.')
+                print('Aborted.', file=sys.stderr)
         else:
             commands.run.activate(bibname)
 
@@ -137,12 +130,10 @@ def delete(bibname: str) -> None:
     path = commands.run.bib_path(bibname)
     if path.exists():
         if commands.run.ask(f'Really delete "{bibname}"?', default=False):
+            from .utils import rm_tree
             rm_tree(path.parent)
     else:
-        commands.run.event(Events.FileNotFound,
-                           path,
-                           Levels.critical,
-                           Exception('None'))
+        raise FileNotFound(path)
 
 
 @commands.register
@@ -154,29 +145,23 @@ def rename(old_bibname: str, new_bibname: str) -> None:
         if not new_path.exists():
             old_path.rename(new_path)
         else:
-            commands.run.event(Events.InvalidName,
-                               new_path,
-                               Levels.critical,
-                               Exception('None'))
+            raise InvalidName(new_bibname, 'target bibliography already exists')
         if old_bibname == commands.run.active_name:
             commands.run.activate(new_bibname)
     else:
-        commands.run.event(Events.FileNotFound,
-                           old_path,
-                           Levels.critical,
-                           Exception('None'))
+        raise FileNotFound(old_path)
 
 
 @commands.register
 def checkout(bibname: str) -> None:
     """Activate a bibliography"""
     if bibname == commands.run.active_name:
-        print(f'Already using "{bibname}"')
+        print(f'Already using "{bibname}"', file=sys.stderr)
     elif commands.run.is_bib(bibname) or commands.run.ask(
             f'Bib "{bibname}" doesn\'t exist. Create it?', default=True):
         commands.run.activate(bibname)
     else:
-        print('Aborted')
+        print('Aborted', file=sys.stderr)
 
 
 @commands.register
@@ -185,7 +170,7 @@ def list() -> None:
     for bibpath in commands.run.bibdir.iterdir():
         if bibpath.is_dir():
             pre = '*' if bibpath.name == commands.run.active_name else ' '
-            sys.stdout.write('{} {}\n'.format(pre, bibpath.stem))
+            print('{} {}'.format(pre, bibpath.stem))
 
 
 @commands.register
@@ -198,7 +183,7 @@ def show(bibname: Optional[str] = None) -> None:
 def find(patterns: List[str], bibname: Optional[str] = None) -> None:
     """Seach in local bibliographies"""
     if bibname and not commands.run.is_bib(bibname):
-        commands.run.fail(f'Bib "{bibname}" doesn\'t exist.')
+        raise FileNotFound(f'Bibliography "{bibname}"')
 
     path = commands.run.bib_path(bibname) if bibname \
            else commands.run.active_path
@@ -213,8 +198,7 @@ def find(patterns: List[str], bibname: Optional[str] = None) -> None:
 def open(obj: str) -> None:
     pdf_path = commands.run.active_files_path/(obj+'.pdf')
     if pdf_path.exists():
-        pdf_reader = 'llpp'
-        subprocess.run([pdf_reader, pdf_path], check=True)
+        pdf_reader = commands.run.settings['fulltext']['pdf_reader_cmd']
+        subprocess.Popen([pdf_reader, pdf_path], start_new_session=True)
     else:
-        commands.run.event(Events.FileNotFound,
-            pdf_path, Levels.critical, Exception('None'))
+        raise FileNotFound(pdf_path)

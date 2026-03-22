@@ -25,6 +25,7 @@ def test_gets_removed(commands):
 def test_unknown_id(commands, capsys):
     with commands.run.open('w') as bib:
         bib.update(BIBCODE)
-    commands['rm']('SomeLabel')
+    commands['rm'](['OtherLabel'])
     _, err = capsys.readouterr()
-    assert 'IdNotFound' in err
+    assert 'Reference' in err
+    assert 'not found' in err

@@ -28,5 +28,5 @@ def test_already_active(commands, capsys):
     assert commands.run.active_name == testbib
     with commands.run.state_path.open() as statefile:
         assert json.load(statefile)['bib'] == testbib
-    out, _ = capsys.readouterr()
-    assert 'Already using' in out
+    _, err = capsys.readouterr()
+    assert 'Already using' in err

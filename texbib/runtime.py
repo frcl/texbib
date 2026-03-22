@@ -6,8 +6,8 @@ from typing import Optional
 import appdirs
 
 from texbib.bibliography import Bibliography
-from texbib.utils import Events, Levels
 from texbib.settings import get_settings
+from texbib.errors import BibError
 
 
 class RuntimeInstance:
@@ -17,8 +17,7 @@ class RuntimeInstance:
         debug (bool): Indicate if to run in debug mode
         bibdir (pathlib.Path): base directory for runtime
     """
-    debug_msg = 'bib: {exc}: {exc_msg} ({level}, {bib_msg})'
-    error_msg = 'bib: {level} {bib_msg}'
+    error_prefix = 'bib: '
 
     input = input
 
@@ -93,7 +92,8 @@ class RuntimeInstance:
             bibname (str): name of the database, must not contain spaces
         """
         if not bibname or ' ' in bibname:
-            raise ValueError(f'Invalid bib name "{bibname}"')
+            from texbib.errors import InvalidName
+            raise InvalidName(bibname, 'name must not be empty or contain spaces')
         self.state['bib'] = bibname
         with self.state_path.open('w') as state_file: # pylint: disable=no-member
             json.dump(self.state, state_file)
@@ -103,39 +103,13 @@ class RuntimeInstance:
         if not self.active_files_path.exists():
             self.active_files_path.mkdir()
 
-    def event(self, event: Events,
-              info: str,
-              level: Levels,
-              exc: Optional[Exception]):
-        """Trigger a runtime event.
+    def error(self, message: str):
+        """Print an error message to stderr.
 
         Arguments:
-        - event: utils.Events
-        - info: str
-        - level: utils.Levels
-        - exc: Exception
+            message (str): Error message to print
         """
-        bib_msg = f'{event}: {info}'
-
-        if self.debug:
-            if exc:
-                msg = self.debug_msg.format(exc=type(exc).__name__,
-                                            exc_msg=', '.join(exc.args),
-                                            level=level,
-                                            bib_msg=bib_msg)
-            else:
-                msg = self.error_msg.format(level=level,
-                                            bib_msg=bib_msg)
-        else:
-            msg = self.error_msg.format(level=level,
-                                        bib_msg=bib_msg)
-        # TODO: message without exception
-
-        sys.stderr.write(msg+'\n')
-
-        if level == Levels.critical:
-            sys.stdout.write('aborting...')
-            sys.exit(1)
+        print(self.error_prefix + message, file=sys.stderr)
 
     def ask(self, msg: str, default: bool = True) -> bool:
         """Ask the user a yes/no question and get the answer as bool.
@@ -154,6 +128,12 @@ class RuntimeInstance:
         des = self.input()
         return des.lower() == 'y' if des else default
 
-    def fail(self, msg: str):
-        print(self.error_msg.format(level='ERROR', bib_msg=msg))
-        sys.exit(1)
+    def fail(self, message: str, exit_code: int = 1):
+        """Print an error message to stderr and exit.
+
+        Arguments:
+            message (str): Error message to print
+            exit_code (int): Exit code to use (default: 1)
+        """
+        self.error(message)
+        sys.exit(exit_code)

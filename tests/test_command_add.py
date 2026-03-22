@@ -14,7 +14,7 @@ def test_adding_file(commands, tmpdir):
 def test_skip_non_existing(commands, tmpdir, capsys):
     commands['add']([str(tmpdir.join('foo.bib'))])
     _, err = capsys.readouterr()
-    assert 'FileNotFound' in err
+    assert 'File not found' in err
 
 
 def test_empty_list(commands):

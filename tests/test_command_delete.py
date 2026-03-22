@@ -15,7 +15,6 @@ def test_deleting_active(commands):
 
 
 def test_non_existing(commands, capsys):
-    with pytest.raises(SystemExit):
+    from texbib.errors import FileNotFound
+    with pytest.raises(FileNotFound):
         commands['delete']('123bar')
-    _, err = capsys.readouterr()
-    assert 'FileNotFound' in err

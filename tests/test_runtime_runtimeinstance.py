@@ -1,9 +1,6 @@
 import pytest
 
 
-from texbib.utils import Events, Levels
-
-
 def test_init_state(init_runtime):
     assert {path.name for path in init_runtime.bibdir.iterdir()} \
             == {'default', 'ACTIVE'}
@@ -22,15 +19,16 @@ def test_activate(runtime):
     assert runtime.active_name == 'default'
     runtime.activate('new_bib')
     assert runtime.active_name == 'new_bib'
-    with pytest.raises(ValueError):
+    from texbib.errors import InvalidName
+    with pytest.raises(InvalidName):
         runtime.activate('')
 
 
-def test_event(runtime, capsys):
-    runtime.event(Events.FileNotFound, 'filename.foo', Levels.warning, None)
+def test_error(runtime, capsys):
+    runtime.error('Test error message')
     _, err = capsys.readouterr()
     assert 'bib' in err
-    assert 'FileNotFound' in err
+    assert 'Test error message' in err
 
 
 def test_ask(runtime, capsys, monkeypatch):

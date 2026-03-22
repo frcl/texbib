@@ -6,12 +6,17 @@ to manage your BibTeX references.
 """
 import argparse
 import inspect
+import sys
 import typing
 from pathlib import Path
 
 from texbib.runtime import RuntimeInstance
 from texbib.commands import commands
+from texbib.errors import BibError
 from texbib import __version__
+
+
+UNALIASED = ['delete', 'rename', 'link_file']
 
 
 def main(args):
@@ -27,15 +32,32 @@ def main(args):
     del args['command']
 
     # the validity of the command has already been checked by the ArgumentParser
+    # TODO: do this with subparser.set_defaults
     try:
         cmd_func = cmds[cmd]
     except KeyError:
         cmd_func = cmds[next(c for c in cmds
-                             if c.startswith(cmd) and c != 'delete')]
-    status = cmd_func(**args)
+                             if c.startswith(cmd) and c not in UNALIASED)]
+
+    try:
+        status = cmd_func(**args)
+    except BibError as e:
+        runtime.error(e.message)
+        sys.exit(e.exit_code)
+    except NotImplementedError:
+        runtime.error('Command not implemented')
+        sys.exit(1)
+    except Exception as e:
+        if runtime.debug:
+            import traceback
+            traceback.print_exc()
+        else:
+            runtime.error(f'Unexpected error: {e}')
+        sys.exit(1)
 
     if status == NotImplemented:
-        print('bib: not implemented')
+        print('bib: not implemented', file=sys.stderr)
+        sys.exit(1)
 
 
 def parse_args():
@@ -52,11 +74,10 @@ def parse_args():
     subcmdparsers = argp.add_subparsers(title='commands', dest='command',
                                         metavar='command', required=True)
 
-    for cmd in commands.dict:
-        cmdhelp = commands.dict[cmd].__doc__
-        aliases = [cmd[0]] if cmd not in ('delete', 'rename', 'link_file') else []
-        subp = subcmdparsers.add_parser(cmd, help=cmdhelp, aliases=aliases)
-        subcmd_sig = inspect.signature(commands.dict[cmd])
+    for cmd_name, cmd in commands.dict.items():
+        aliases = [cmd_name[0]] if cmd_name not in UNALIASED else []
+        subp = subcmdparsers.add_parser(cmd_name, help=cmd.__doc__, aliases=aliases)
+        subcmd_sig = inspect.signature(cmd)
         for name, param in subcmd_sig.parameters.items():
             if param.annotation == typing.List[str]:
                 subp.add_argument(name, nargs='+')

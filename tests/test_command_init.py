@@ -24,7 +24,6 @@ def test_ask_for_overwrite(commands, capsys, monkeypatch):
 
 
 def test_invalid_name(commands, capsys):
-    with pytest.raises(SystemExit):
+    from texbib.errors import InvalidName
+    with pytest.raises(InvalidName):
         commands['init']('')
-    _, err = capsys.readouterr()
-    assert 'InvalidName' in err
