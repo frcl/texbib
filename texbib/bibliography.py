@@ -1,8 +1,8 @@
 import re
 import shelve
 import textwrap
-from pathlib import Path as Path
-from typing import Union
+from pathlib import Path
+from typing import List, Union
 
 from .parser import loads, dumps
 from .colors import ColoredText as _c
@@ -38,7 +38,7 @@ class BibItem(dict):
         return '\n'.join([start_line]+list(indented(info_lines)))
 
     @property
-    def authors(self) -> list[str]:
+    def authors(self) -> List[str]:
         return re.split(r'\s(?:and|AND)\s', self['author'])
 
     def pdf_path(self, bib_files_path: Path) -> Path:
@@ -106,20 +106,17 @@ class Bibliography:
 
     def ids(self):
         """IDs in the bibliography. Simular to dict.keys."""
-        for key in self.db.keys():
-            yield key
+        yield from self.db.keys()
 
     def values(self):
         """Simular to dict.values.
         Returns list of BibItems."""
-        for val in self.db.values():
-            yield val
+        yield from self.db.values()
 
     def items(self):
         """Simular to dict.items.
         Returns list of (ID, BibItem) tuples."""
-        for key, val in self.db.items():
-            yield key, val
+        yield from self.db.items()
 
     def bibtex(self):
         """Returns a single string with the bibtex
@@ -136,7 +133,7 @@ class Bibliography:
             for key, val in self.items():
                 if all(any(re.search(pat.lower(), v.lower()) for v in val.values())
                        for pat in patterns):
-                    yield self[key]
+                    yield val
 
     def cleanup(self):
         """Try to reduce memory usage, by reorganizing

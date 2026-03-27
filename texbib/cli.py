@@ -1,4 +1,4 @@
-#!/bin/env python3.5
+#!/bin/env python3
 # -*- coding: utf-8 -*-
 """
 This is the main file of the texbib program. A program that helps you
@@ -76,7 +76,7 @@ def parse_args():
     subcmdparsers = argp.add_subparsers(title='commands', dest='command',
                                         metavar='command', required=True)
 
-    for cmd_name, cmd in commands.dict.items():
+    for cmd_name, cmd in commands().items():
         aliases = [cmd_name[0]] if cmd_name not in UNALIASED else []
         subp = subcmdparsers.add_parser(cmd_name, help=cmd.__doc__, aliases=aliases)
         subcmd_sig = inspect.signature(cmd)

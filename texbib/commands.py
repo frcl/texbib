@@ -1,3 +1,4 @@
+# mypy: disable-error-code="attr-defined"
 import os
 import re
 import sys
@@ -12,6 +13,7 @@ from .errors import FileNotFound, IdNotFound, InvalidName, ExitCode
 from .sources import from_isbn
 from .parser import loads, dumps
 from .schemes import SCHEMES, EXTENSIONS
+from .utils import rm_tree
 
 
 class commands(dict): # pylint: disable=invalid-name
@@ -19,24 +21,22 @@ class commands(dict): # pylint: disable=invalid-name
     Each command has to be registerd with the classmethod `register`.
     An instance of this class is a dict containing a snapshot
     of the commands registerd at the moment of instanciation."""
-    dict = {}
+    cmd_dict: dict[str, object] = {}
     run = None
 
     def __init__(self):
-        super(commands, self).__init__()
-        self.update(self.dict)
+        super().__init__()
+        self.update(self.cmd_dict)
 
     @classmethod
     def set_runtime(cls, runtime):
-        """Set the RuntimeInstance to be used for all commands in this module
-        """
+        """Set the RuntimeInstance to be used for all commands in this module"""
         cls.run = runtime
 
     @classmethod
     def register(cls, cmd_func):
-        """Register a function for use as subcommand in the cli
-        """
-        cls.dict[cmd_func.__name__] = cmd_func
+        """Register a function for use as subcommand in the cli"""
+        cls.cmd_dict[cmd_func.__name__] = cmd_func
         return cmd_func
 
 
@@ -51,8 +51,7 @@ def add(objects: List[str]) -> ExitCode:
     - ISBN: bib add 9780123456789
     - stdin: cat paper.bib | bib add -
 
-    Multiple sources can be combined in a single command.
-    """
+    Multiple sources can be combined in a single command."""
     exit_code = ExitCode.SUCCESS
     for obj in objects:
         if obj == '-':
@@ -70,15 +69,17 @@ def add(objects: List[str]) -> ExitCode:
                 bibtex, _ = from_isbn(obj)
             else:
                 path = Path(obj)
+
                 if not path.exists():
                     exc = FileNotFound(path)
                     commands.run.error(str(exc))
                     exit_code = exc.exit_code
                     continue
-                elif path.suffix not in EXTENSIONS:
+
+                if path.suffix not in EXTENSIONS:
                     raise NotImplementedError
-                else:
-                    bibtex, _ = EXTENSIONS[path.suffix](path)
+
+                bibtex, _ = EXTENSIONS[path.suffix](path)
 
         if bibtex:
             with commands.run.open('w') as bib:
@@ -140,20 +141,22 @@ def dump(outfile: Optional[str] = None) -> ExitCode:
 @commands.register
 def init(bibname: str) -> ExitCode:
     """Create a new bibliography"""
+
     if (not bibname) or (' ' in bibname):
         raise InvalidName(repr(bibname), 'name must not be empty or contain spaces')
-    else:
-        if commands.run.is_bib(bibname):
-            if commands.run.ask(f'Bib "{bibname}" exists. '
-                                'Overwrite it, deleting all content?',
-                                default=False):
-                commands.run.bib_path(bibname).unlink()
-                commands.run.activate(bibname)
-            else:
-                print('Aborted.', file=sys.stderr)
-                return ExitCode.GENERAL_ERROR
-        else:
+
+    if commands.run.is_bib(bibname):
+        if commands.run.ask(f'Bib "{bibname}" exists. '
+                            'Overwrite it, deleting all content?',
+                            default=False):
+            commands.run.bib_path(bibname).unlink()
             commands.run.activate(bibname)
+        else:
+            print('Aborted.', file=sys.stderr)
+            return ExitCode.GENERAL_ERROR
+    else:
+        commands.run.activate(bibname)
+
     return ExitCode.SUCCESS
 
 
@@ -163,7 +166,6 @@ def delete(bibname: str) -> ExitCode:
     path = commands.run.bib_path(bibname)
     if path.exists():
         if commands.run.ask(f'Really delete "{bibname}"?', default=False):
-            from .utils import rm_tree
             rm_tree(path.parent)
         else:
             print('Aborted.', file=sys.stderr)
@@ -210,7 +212,7 @@ def list() -> ExitCode:
     for bibpath in commands.run.bibdir.iterdir():
         if bibpath.is_dir():
             pre = '*' if bibpath.name == commands.run.active_name else ' '
-            print('{} {}'.format(pre, bibpath.stem))
+            print(f'{pre} {bibpath.stem}')
     return ExitCode.SUCCESS
 
 
@@ -243,6 +245,7 @@ def find(patterns: List[str], bibname: Optional[str] = None) -> ExitCode:
 
 @commands.register
 def open(obj: str) -> ExitCode:
+    """Open local pdf file"""
     pdf_path = commands.run.active_files_path/(obj+'.pdf')
     if pdf_path.exists():
         pdf_reader = commands.run.settings['fulltext']['pdf_reader_cmd']
