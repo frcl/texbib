@@ -49,7 +49,7 @@ class BibItem(dict):
 class Bibliography:
     """A class to manage bibliographic data in a database.
     It mimics a dictionary with bibtex ids as keys and
-    returns a BibItem, wich is also dinctionary-like.
+    returns a BibItem, which is also dictionary-like.
     Technically it is a wrapper around the dbm.gnu database.
     """
 
@@ -85,7 +85,7 @@ class Bibliography:
         return '\n'.join(str(self[key]) for key in self)
 
     def update(self, data):
-        """Simular to dict.update. Data can be
+        """Similar to dict.update. Data can be
         either a Bibliography or a BibTex string."""
         added_keys = []
         if isinstance(data, str):
@@ -105,16 +105,16 @@ class Bibliography:
         del self.db[key]
 
     def ids(self):
-        """IDs in the bibliography. Simular to dict.keys."""
+        """IDs in the bibliography. Similar to dict.keys."""
         yield from self.db.keys()
 
     def values(self):
-        """Simular to dict.values.
+        """Similar to dict.values.
         Returns list of BibItems."""
         yield from self.db.values()
 
     def items(self):
-        """Simular to dict.items.
+        """Similar to dict.items.
         Returns list of (ID, BibItem) tuples."""
         yield from self.db.items()
 
@@ -137,7 +137,7 @@ class Bibliography:
 
     def cleanup(self):
         """Try to reduce memory usage, by reorganizing
-        database and deleting unnessecary fields"""
+        database and deleting unnecessary fields"""
         pass # TODO: implement
 
     def close(self):

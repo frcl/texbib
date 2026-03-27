@@ -20,6 +20,7 @@ class ExitCode(IntEnum):
     ID_NOT_FOUND = 5
     EXISTS = 6
     INVALID_INPUT = 7
+    UNKOWN_RESOURCE = 8
 
 
 class BibError(Exception):
@@ -69,3 +70,12 @@ class BibExists(BibError):
     def __init__(self, name: str):
         super().__init__(f"Bibliography '{name}' already exists")
         self.name = name
+
+
+class UnkownResource(BibError):
+    """Raised when a link or file has an unknown format."""
+    exit_code = ExitCode.UNKOWN_RESOURCE
+
+    def __init__(self, resource: str):
+        super().__init__(f"Invalid or unsupported resource '{resource}'")
+        self.resource = resource

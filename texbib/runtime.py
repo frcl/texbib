@@ -13,7 +13,7 @@ from texbib.errors import BibError
 class RuntimeInstance:
     """Class for managing the runtime environment for bib to run in.
 
-    Consturctor Arguments:
+    Constructor Arguments:
         debug (bool): Indicate if to run in debug mode
         bibdir (pathlib.Path): base directory for runtime
     """
