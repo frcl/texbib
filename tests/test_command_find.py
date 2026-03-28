@@ -13,10 +13,10 @@ def test_simple_gets_found(commands, capsys):
     find = commands['find']
     with commands.run.open('w') as bib:
         bib.update(BIBCODE)
-    find('mustermann')
+    find(['mustermann'])
     out, _ = capsys.readouterr()
     assert 'SomeLabel' in out
-    find('term')
+    find(['term'])
     out, _ = capsys.readouterr()
     assert 'SomeLabel' in out
 
@@ -24,7 +24,19 @@ def test_simple_gets_found(commands, capsys):
 def test_unmatched_finds_nothing(commands, capsys):
     with commands.run.open('w') as bib:
         bib.update(BIBCODE)
-    commands['find']('foobar23')
+    commands['find'](['foobar23'])
+    out, _ = capsys.readouterr()
+    assert out.strip() == ''
+
+
+def test_smart_case(commands, capsys):
+    find = commands['find']
+    with commands.run.open('w') as bib:
+        bib.update(BIBCODE)
+    find(['Mustermann'])
+    out, _ = capsys.readouterr()
+    assert 'SomeLabel' in out
+    find(['MusterMann'])
     out, _ = capsys.readouterr()
     assert out.strip() == ''
 

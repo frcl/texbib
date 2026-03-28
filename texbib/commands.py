@@ -8,7 +8,7 @@ import subprocess
 from pathlib import Path
 from typing import List, Optional
 
-from .bibliography import Bibliography
+from .bibliography import Bibliography, _smart_case
 from .errors import FileNotFound, IdNotFound, InvalidName, ExitCode
 from .sources import from_isbn
 from .parser import loads, dumps
@@ -234,10 +234,15 @@ def find(patterns: List[str], bibname: Optional[str] = None) -> ExitCode:
     files_path = commands.run.files_path(bibname) if bibname \
                  else commands.run.active_files_path
 
+    ignore_case = _smart_case(patterns)
     found = False
     with Bibliography(path, 'r') as bib:
-        for bibitem in bib.search(patterns):
-            print(bibitem.format_term(has_file=bibitem.pdf_path(files_path).exists()))
+        for bibitem in bib.search(patterns, ignore_case=ignore_case):
+            print(bibitem.format_term(
+                has_file=bibitem.pdf_path(files_path).exists(),
+                patterns=patterns,
+                ignore_case=ignore_case,
+            ))
             found = True
 
     return ExitCode.SUCCESS if found else ExitCode.GENERAL_ERROR

@@ -2,11 +2,20 @@ import re
 import shelve
 import textwrap
 from pathlib import Path
-from typing import List, Union
+from typing import List, Optional, Union
 
 from .parser import loads, dumps
-from .colors import ColoredText as _c
+from .colors import ColoredText as _c, highlight
 from .term_utils import indented, tex2term
+
+
+def _smart_case(patterns: List[str]) -> bool:
+    """Return True if patterns should match case-insensitively.
+
+    Smart case: if any pattern contains uppercase, use case-sensitive matching.
+    Otherwise, use case-insensitive matching.
+    """
+    return not any(re.search(r'[A-Z]', p) for p in patterns)
 
 
 class BibItem(dict):
@@ -23,17 +32,25 @@ class BibItem(dict):
         else:
             raise TypeError
 
-    def format_term(self, has_file: bool = False) -> str:
-        # full paper title
-        info_lines = textwrap.wrap(tex2term(self.get('title', 'Unknown title')))
-        # shortend author list
-        # (line_width = 80, author sting < 67)
+    def format_term(self, has_file: bool = False,
+                    patterns: Optional[List[str]] = None,
+                    ignore_case: bool = False) -> str:
+        title = tex2term(self.get('title', 'Unknown title'))
+        info_lines = textwrap.wrap(title)
+        if patterns:
+            info_lines = [highlight(line, patterns, ignore_case) for line in info_lines]
         if 'author' in self:
             authors_string = self['author'] if len(self['author']) < 67 \
                                             else self.authors[0] + ' et al.'
-            info_lines += ['{}: {}'.format(_c('Author(s)', 'r'), tex2term(authors_string))]
+            author_line = '{}: {}'.format(_c('Author(s)', 'r'), tex2term(authors_string))
+            if patterns:
+                author_line = highlight(author_line, patterns, ignore_case)
+            info_lines.append(author_line)
         if 'doi' in self:
-            info_lines += [str(_c('doi:'+self['doi'], 'y'))]
+            doi_line = str(_c('doi:'+self['doi'], 'y'))
+            if patterns:
+                doi_line = highlight(doi_line, patterns, ignore_case)
+            info_lines.append(doi_line)
         start_line = str(_c(self['ID'], 'm'))+(' [local file]' if has_file else '')
         return '\n'.join([start_line]+list(indented(info_lines)))
 
@@ -123,15 +140,16 @@ class Bibliography:
         code of all items in the bibliography"""
         return dumps(self).strip()
 
-    def search(self, patterns, ids_only=False):
+    def search(self, patterns, ids_only=False, ignore_case: bool = False):
         """Find all matches of the pattern in the bibliography."""
+        flags = re.IGNORECASE if ignore_case else 0
         if ids_only:
             for key in self.ids():
-                if all(re.search(pat, key) for pat in patterns):
+                if all(re.search(pat, key, flags) for pat in patterns):
                     yield self[key]
         else:
             for key, val in self.items():
-                if all(any(re.search(pat.lower(), v.lower()) for v in val.values())
+                if all(any(re.search(pat, v, flags) for v in val.values())
                        for pat in patterns):
                     yield val
 
