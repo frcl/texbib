@@ -9,6 +9,7 @@ import inspect
 import sys
 import typing
 from pathlib import Path
+from typing import get_args, get_origin
 
 from texbib.runtime import RuntimeInstance
 from texbib.commands import commands
@@ -87,7 +88,15 @@ def parse_args():
             elif param.annotation == typing.Union[str, None]:
                 subp.add_argument(name, nargs='?')
             elif param.annotation == bool:
-                subp.add_argument('-'+name[0], action='store_true')
+                short = '-' + name[0]
+                long = '--' + name.replace('_', '-')
+                subp.add_argument(short, long, action='store_true')
+            elif get_origin(param.annotation) is typing.Union and \
+                    get_origin(get_args(param.annotation)[0]) is typing.Literal:
+                choices = tuple(a for a in get_args(get_args(param.annotation)[0]) if a is not None)
+                short = '-' + name[0]
+                long = '--' + name.replace('_', '-')
+                subp.add_argument(short, long, choices=choices, nargs='?', default=None)
             else:
                 subp.add_argument(name)
     args = argp.parse_args()

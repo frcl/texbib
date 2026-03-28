@@ -6,14 +6,25 @@ import shutil
 import tempfile
 import subprocess
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from .bibliography import Bibliography, _smart_case
 from .errors import FileNotFound, IdNotFound, InvalidName, ExitCode
 from .sources import from_isbn
 from .parser import loads, dumps
 from .schemes import SCHEMES, EXTENSIONS
+from .term_utils import tex2term
 from .utils import rm_tree
+
+
+_list = list
+
+_SORT_KEYS = {
+    'i': ('ID', '', lambda x: x.lower()),
+    'a': ('author', '', lambda x: x.lower()),
+    't': ('title', '', tex2term),
+    'd': ('year', float('inf'), lambda x: float(x) if x.isdigit() else float('inf')),
+}
 
 
 class commands(dict): # pylint: disable=invalid-name
@@ -217,14 +228,18 @@ def list() -> ExitCode:
 
 
 @commands.register
-def show(bibname: Optional[str] = None) -> ExitCode:
+def show(bibname: Optional[str] = None,
+         sort_by: Optional[Literal['i', 'a', 't', 'd']] = None,
+         reverse: bool = False) -> ExitCode:
     """List the content of the active bibliography"""
-    find(patterns=[], bibname=bibname)
+    find(patterns=[], bibname=bibname, sort_by=sort_by, reverse=reverse)
     return ExitCode.SUCCESS
 
 
 @commands.register
-def find(patterns: List[str], bibname: Optional[str] = None) -> ExitCode:
+def find(patterns: List[str], bibname: Optional[str] = None,
+         sort_by: Optional[Literal['i', 'a', 't', 'd']] = None,
+         reverse: bool = False) -> ExitCode:
     """Seach in local bibliographies"""
     if bibname and not commands.run.is_bib(bibname):
         raise FileNotFound(f'Bibliography "{bibname}"')
@@ -235,17 +250,19 @@ def find(patterns: List[str], bibname: Optional[str] = None) -> ExitCode:
                  else commands.run.active_files_path
 
     ignore_case = _smart_case(patterns)
-    found = False
     with Bibliography(path, 'r') as bib:
-        for bibitem in bib.search(patterns, ignore_case=ignore_case):
+        items = _list(bib.search(patterns, ignore_case=ignore_case))
+        if sort_by:
+            field, default, convert = _SORT_KEYS[sort_by]
+            items.sort(key=lambda b: convert(b.get(field, default)), reverse=reverse)
+        for bibitem in items:
             print(bibitem.format_term(
                 has_file=bibitem.pdf_path(files_path).exists(),
                 patterns=patterns,
                 ignore_case=ignore_case,
             ))
-            found = True
 
-    return ExitCode.SUCCESS if found else ExitCode.GENERAL_ERROR
+    return ExitCode.SUCCESS if items else ExitCode.GENERAL_ERROR
 
 
 @commands.register

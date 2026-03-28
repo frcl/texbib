@@ -20,7 +20,7 @@ def init_runtime(tmpdir_factory):
     return run
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def commands(tmpdir_factory):
     tmpdir = Path(str(tmpdir_factory.mktemp('com')))
     run = RuntimeInstance(debug=False, bibdir=tmpdir)
