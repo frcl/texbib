@@ -11,26 +11,29 @@ to add, remove, search, and organize bibliographic references.
 # Using tox (runs pytest with multiple Python versions)
 tox
 
-# Or directly with pytest
+# Or directly with pytest (from pipx venv)
+~/.local/share/pipx/venvs/texbib/bin/python -m pytest
+
+# Or if installed in editable mode
 pytest
 ```
 
 ### Running a Single Test
 ```bash
 # Single test file
-pytest tests/test_command_init.py
+~/.local/share/pipx/venvs/texbib/bin/python -m pytest tests/test_command_init.py
 
 # Single test function
-pytest tests/test_command_init.py::test_creation
+~/.local/share/pipx/venvs/texbib/bin/python -m pytest tests/test_command_init.py::test_creation
 
 # Single test with verbose output
-pytest tests/test_command_init.py::test_creation -v
+~/.local/share/pipx/venvs/texbib/bin/python -m pytest tests/test_command_init.py::test_creation -v
 ```
 
 ### Installation (Development)
 ```bash
-# Install in editable mode with test dependencies
-pip install -e ".[test]"
+# Install in editable mode with test dependencies (requires pipx)
+pipx install -e . --pip-args=".[test]"
 ```
 
 ### Running the CLI Locally
@@ -38,8 +41,8 @@ pip install -e ".[test]"
 # After installation
 bib --help
 
-# Or run directly
-python -m texbib --help
+# Or run directly with pipx venv python
+~/.local/share/pipx/venvs/texbib/bin/python -m texbib --help
 ```
 
 ## Code Style Guidelines
