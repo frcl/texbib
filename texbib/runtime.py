@@ -5,9 +5,9 @@ from pathlib import Path
 from typing import Optional
 import appdirs
 
-from texbib.bibliography import Bibliography
-from texbib.settings import get_settings
-from texbib.errors import BibError
+from .bibliography import Bibliography
+from .settings import get_settings
+from .errors import InvalidName
 
 
 class RuntimeInstance:
@@ -92,7 +92,6 @@ class RuntimeInstance:
             bibname (str): name of the database, must not contain spaces
         """
         if not bibname or ' ' in bibname:
-            from texbib.errors import InvalidName
             raise InvalidName(bibname, 'name must not be empty or contain spaces')
         self.state['bib'] = bibname
         with self.state_path.open('w') as state_file: # pylint: disable=no-member

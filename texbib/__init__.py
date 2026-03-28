@@ -1,5 +1,5 @@
-from texbib.bibliography import Bibliography, BibItem
-from texbib.commands import commands
+from .bibliography import Bibliography, BibItem
+from .commands import commands
 
 
 __all__ = ['Bibliography',
