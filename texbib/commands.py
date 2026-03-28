@@ -219,7 +219,7 @@ def list() -> ExitCode:
 @commands.register
 def show(bibname: Optional[str] = None) -> ExitCode:
     """List the content of the active bibliography"""
-    find(patterns=[''], bibname=bibname)
+    find(patterns=[], bibname=bibname)
     return ExitCode.SUCCESS
 
 

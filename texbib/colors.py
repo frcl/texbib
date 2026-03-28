@@ -68,5 +68,6 @@ def highlight(text: str, patterns: List[str], ignore_case: bool = False) -> str:
     """Wrap text matching patterns with bold bright yellow ANSI codes."""
     flags = re.IGNORECASE if ignore_case else 0
     for pat in patterns:
-        text = re.sub(f'({pat})', r'\033[1;97m\1\033[0m', text, flags=flags)
+        if pat:
+            text = re.sub(f'({pat})', r'\033[1;97m\1\033[0m', text, flags=flags)
     return text
