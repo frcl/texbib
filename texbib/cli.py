@@ -17,7 +17,7 @@ from texbib.errors import BibError, ExitCode
 from texbib import __version__
 
 
-UNALIASED = ['delete', 'rename', 'link_file']
+UNALIASED = ['delete', 'rename', 'link_file', 'detail']
 
 
 def main(args):

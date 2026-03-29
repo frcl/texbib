@@ -2,7 +2,7 @@ import re
 import shelve
 import textwrap
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import List, Literal, Optional, Union
 
 from .parser import loads, dumps
 from .colors import ColoredText as _c, highlight
@@ -35,6 +35,17 @@ class BibItem(dict):
     def format_term(self, has_file: bool = False,
                     patterns: Optional[List[str]] = None,
                     ignore_case: bool = False) -> str:
+        """Format all fields of the BibItem for display in the terminal,
+        such as in the `show` command.
+
+        Args:
+            has_file (bool): Indicates whether there is a local fulltext file present.
+            patterns (list[str]): List of patterns to highlight.
+            ignore_case (bool): Whether matching for patterns should be case insensitive search. Default false.
+
+        Returns:
+            Formatted string with all fields.
+        """
         title = tex2term(self.get('title', 'Unknown title'))
         info_lines = textwrap.wrap(title)
         if patterns:
@@ -60,6 +71,24 @@ class BibItem(dict):
 
     def pdf_path(self, bib_files_path: Path) -> Path:
         return bib_files_path/(self['ID']+'.pdf')
+
+    def format_detail(self, format_type: Literal['simple', 'bibtex'] = 'simple') -> str:
+        """Format all fields of the BibItem for detailed display.
+
+        Args:
+            format_type: 'simple' for key-value list, 'bibtex' for raw BibTeX.
+
+        Returns:
+            Formatted string with all fields.
+        """
+        if format_type == 'bibtex':
+            return dumps({self['ID']: dict(self)})
+
+        lines = [f"\n{self['ID']} ({self['ENTRYTYPE']})\n"]
+        for key, value in sorted(self.items()):
+            if key.islower():
+                lines.append(f'{key.capitalize()}: {value}')
+        return '\n'.join(lines)
 
 
 

@@ -237,6 +237,25 @@ def show(bibname: Optional[str] = None,
 
 
 @commands.register
+def detail(identifiers: List[str],
+           format: Optional[Literal['simple', 'bibtex']] = None) -> ExitCode:
+    """Show detailed information about specific bibliography entries"""
+    if format is None:
+        format = 'simple'
+
+    status = ExitCode.SUCCESS
+    with commands.run.open('r') as bib:
+        for identifier in identifiers:
+            if identifier in bib:
+                print(bib[identifier].format_detail(format_type=format))
+            else:
+                commands.run.error(str(IdNotFound(identifier)))
+                status = ExitCode.ID_NOT_FOUND
+
+    return status
+
+
+@commands.register
 def find(patterns: List[str], bibname: Optional[str] = None,
          sort_by: Optional[Literal['i', 'a', 't', 'd']] = None,
          reverse: bool = False) -> ExitCode:
