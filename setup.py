@@ -40,6 +40,7 @@ setup(
         'setuptools',
         'isbnlib2',
         'beautifulsoup4',
+        'chardet',
     ],
     extras_require={
         'test': ['pytest'],

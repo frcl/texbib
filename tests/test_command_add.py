@@ -49,3 +49,21 @@ def test_adding_empty_stdin(commands, capsys, monkeypatch):
     _, err = capsys.readouterr()
     assert 'no data from stdin' in err
     assert result != ExitCode.SUCCESS
+
+
+def test_adding_latin1_encoded_file(commands, tmpdir):
+    bib_content = (
+        '@book{test2024,\n'
+        '    author = {M\xfcller, Hans},\n'
+        '    year = 2024,\n'
+        '    title = {Caf\xe9 society}\n'
+        '}'
+    )
+    path = tmpdir.join('latin1.bib')
+    with path.open('wb') as f:
+        f.write(bib_content.encode('latin-1'))
+    commands['add']([str(path)])
+    with commands.run.open() as bib:
+        assert 'test2024' in bib.db.keys()
+        assert bib['test2024']['author'] == 'Müller, Hans'
+        assert bib['test2024']['title'] == 'Café society'
