@@ -9,8 +9,7 @@ from pathlib import Path
 from typing import List, Literal, Optional
 
 from .bibliography import Bibliography, _smart_case
-from .errors import FileNotFound, IdNotFound, InvalidName, ExitCode
-from .sources import from_isbn
+from .errors import FileNotFound, IdNotFound, InvalidName, ExitCode, UnkownResource
 from .parser import loads, dumps
 from .schemes import SCHEMES, EXTENSIONS
 from .term_utils import tex2term
@@ -74,10 +73,10 @@ def add(objects: List[str]) -> ExitCode:
                 continue
         else:
             parts = obj.split(':')
-            if len(parts) > 1 and parts[0] in SCHEMES:
-                bibtex, _ = SCHEMES[parts[0]](obj)
+            if len(parts) > 1 and parts[0] in SCHEMES['bibtex']:
+                bibtex = SCHEMES['bibtex'][parts[0]](obj)
             elif re.match('^[0-9-]*$', obj):
-                bibtex, _ = from_isbn(obj)
+                bibtex = SCHEMES['bibtex']['isbn'](obj)
             else:
                 path = Path(obj)
 
@@ -88,9 +87,12 @@ def add(objects: List[str]) -> ExitCode:
                     continue
 
                 if path.suffix not in EXTENSIONS:
-                    raise NotImplementedError
+                    exc = UnkownResource(str(path))
+                    commands.run.error(str(exc))
+                    exit_code = exc.exit_code
+                    continue
 
-                bibtex, _ = EXTENSIONS[path.suffix](path)
+                bibtex = EXTENSIONS[path.suffix](path)
 
         if bibtex:
             with commands.run.open('w') as bib:

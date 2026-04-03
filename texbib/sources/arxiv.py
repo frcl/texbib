@@ -1,37 +1,50 @@
 import re
-from typing import Tuple, Optional
 from pathlib import Path
 import requests
 from ..schemes import scheme_handler
+from ..errors import BibError
 
 
 ARXIV = re.compile(r'ar[xX]iv:(\d{4}\.\d*(?:v\d)?)')
 ARXIV_OLDSTYLE = re.compile(r'ar[xX]iv:([a-zA-Z.]*/\d*)')
 
 
-@scheme_handler('arxiv', 'arXiv')
-def from_arxiv(handle: str) -> Tuple[Optional[str], Optional[Path]]:
-    """Get a paper from arXiv.
-
-    Arguments:
-        handle (str): ArXiv handle ("arXiv:jjmm.xxxxx")
-
-    Returns:
-        bibtex (str): the bibtex code for the reference
-        pdf_path (pathlib.Path): a Path to the downloaded PDF
-    """
+def _parse_arxiv_id(handle: str) -> str:
     match = ARXIV.match(handle)
     if not match:
         match = ARXIV_OLDSTYLE.match(handle)
         if not match:
-            raise ValueError('Invalid arXiv handle')
+            raise BibError('Invalid arXiv handle')
+    return match.group(1)
 
-    bibtex_url = f'https://arxiv.org/bibtex/{match.group(1)}'
-    arxiv_response = requests.get(bibtex_url)
-    arxiv_response.raise_for_status()
-    bibtex = arxiv_response.text
 
-    # pdf_url = f'https://arxiv.org/pdf/{match.group(1)}'
-    # TODO: download pdf
+@scheme_handler('arxiv', 'arXiv')
+def bibtex_from_arxiv(handle: str) -> str:
+    """Get BibTeX for an arXiv paper.
 
-    return bibtex, None
+    Arguments:
+        handle: ArXiv handle ("arXiv:jjmm.xxxxx")
+
+    Returns:
+        BibTeX string for the paper.
+    """
+    response = requests.get(f'https://arxiv.org/bibtex/{_parse_arxiv_id(handle)}')
+    response.raise_for_status()
+    return response.text
+
+
+@scheme_handler('arxiv', 'arXiv', rtype='fulltext')
+def fulltext_from_arxiv(handle: str, target: Path) -> Path:
+    """Download PDF for an arXiv paper.
+
+    Arguments:
+        handle: ArXiv handle ("arXiv:jjmm.xxxxx")
+        target: Path where the PDF should be saved.
+
+    Returns:
+        Path to the downloaded PDF file.
+    """
+    response = requests.get(f'https://arxiv.org/pdf/{_parse_arxiv_id(handle)}.pdf')
+    response.raise_for_status()
+    target.write_bytes(response.content)
+    return target

@@ -1,12 +1,18 @@
 import chardet
-
+from pathlib import Path
 from ..schemes import file_handler
 
 
 @file_handler('.bib', '.bibtex')
-def from_bibtex(path):
+def bibtex_from_file(path: Path) -> str:
+    """Read BibTeX from a file with automatic encoding detection.
+
+    Arguments:
+        path: Path to the .bib or .bibtex file.
+
+    Returns:
+        BibTeX string with UTF-8 encoding.
+    """
     raw = path.read_bytes()
     detected = chardet.detect(raw)
-    source_encoding = detected['encoding'] or 'utf-8'
-    bibtex = raw.decode(source_encoding)
-    return bibtex, None
+    return raw.decode(detected['encoding'] or 'utf-8')

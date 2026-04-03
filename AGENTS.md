@@ -50,7 +50,6 @@ bib --help
 ### General
 - Use **4 spaces** for indentation (no tabs)
 - Maximum line length: **100 characters** (soft limit)
-- All source files should have `# -*- coding: utf-8 -*-` header
 - Use docstrings for all public modules, classes, and functions
 
 ### Imports

@@ -1,5 +1,4 @@
 #!/bin/env python3
-# -*- coding: utf-8 -*-
 """
 This is the main file of the texbib program. A program that helps you
 to manage your BibTeX references.
@@ -11,6 +10,8 @@ import typing
 from pathlib import Path
 from typing import get_args, get_origin
 
+# populates SCHEMES and EXTENSIONS
+import texbib.sources # pylint: disable=unused-import
 from texbib.runtime import RuntimeInstance
 from texbib.commands import commands
 from texbib.errors import BibError, ExitCode

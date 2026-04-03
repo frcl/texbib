@@ -1,5 +1,4 @@
 import warnings
-from typing import Tuple, Optional
 from pathlib import Path
 
 with warnings.catch_warnings():
@@ -9,10 +8,18 @@ with warnings.catch_warnings():
 from ..schemes import scheme_handler
 
 
-to_bibtex = lambda x: isbnlib.dev._fmt._fmtbib('bibtex', x)
+def _to_bibtex(meta):
+    return isbnlib.dev._fmt._fmtbib('bibtex', meta)
 
 
 @scheme_handler('isbn', 'ISBN')
-def from_isbn(isbn: str) -> Tuple[Optional[str], Optional[Path]]:
-    meta_info = isbnlib.meta(isbn)
-    return to_bibtex(meta_info), None
+def bibtex_from_isbn(isbn: str) -> str:
+    """Get BibTeX for an ISBN.
+
+    Arguments:
+        isbn: International Standard Book Number
+
+    Returns:
+        BibTeX string for the book.
+    """
+    return _to_bibtex(isbnlib.meta(isbn))
