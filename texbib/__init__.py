@@ -1,5 +1,7 @@
 from .bibliography import Bibliography, BibItem
 from .commands import commands
+# populates SCHEMES and EXTENSIONS
+from .sources import *
 
 
 __all__ = ['Bibliography',

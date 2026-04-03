@@ -10,12 +10,9 @@ import typing
 from pathlib import Path
 from typing import get_args, get_origin
 
-# populates SCHEMES and EXTENSIONS
-import texbib.sources # pylint: disable=unused-import
 from texbib.runtime import RuntimeInstance
-from texbib.commands import commands
 from texbib.errors import BibError, ExitCode
-from texbib import __version__
+from texbib import commands, __version__
 
 
 UNALIASED = ['delete', 'rename', 'link_file', 'detail']
