@@ -131,20 +131,30 @@ class Bibliography:
         return '\n'.join(str(self[key]) for key in self)
 
     def update(self, data):
-        """Similar to dict.update. Data can be
-        either a Bibliography or a BibTex string."""
+        """Add entries to the bibliography.
+
+        Arguments:
+            data: Can be a BibTeX string, a Bibliography, or a dict from parser.loads()
+
+        Returns:
+            List of added entry IDs.
+        """
         added_keys = []
         if isinstance(data, str):
             entries = loads(data)
-            for key in entries:
-                self[key] = BibItem(entries[key])
+            for key, entry in entries.items():
+                self[key] = BibItem(entry)
                 added_keys.append(key)
         elif isinstance(data, Bibliography):
             for key in data.ids():
                 self[key] = data[key]
                 added_keys.append(key)
+        elif isinstance(data, dict):
+            for key, entry in data.items():
+                self[key] = BibItem(entry)
+                added_keys.append(key)
         else:
-            raise TypeError(f'Can not read {type(data)}, need Bibliography')
+            raise TypeError(f'Cannot read {type(data)}, need str, Bibliography, or dict')
         return added_keys
 
     def remove(self, key: str):

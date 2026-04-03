@@ -2,7 +2,7 @@ import os
 import sys
 import json
 from pathlib import Path
-from typing import Optional
+from typing import Callable, Optional
 import appdirs
 
 from .bibliography import Bibliography
@@ -126,6 +126,23 @@ class RuntimeInstance:
 
         des = self.input()
         return des.lower() == 'y' if des else default
+
+    def ask_string(self, msg: str, validator: Optional[Callable[[str], bool]] = None) -> str:
+        """Ask the user for a string input with optional validation.
+
+        Arguments:
+            msg: Prompt message
+            validator: Optional callable that takes string and returns bool.
+                       If validation fails, re-prompts until valid input.
+
+        Returns:
+            User's validated input string.
+        """
+        while True:
+            sys.stdout.write(msg + ': ')
+            result = self.input()
+            if validator is None or validator(result):
+                return result
 
     def fail(self, message: str, exit_code: int = 1):
         """Print an error message to stderr and exit.

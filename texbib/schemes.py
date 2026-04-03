@@ -1,3 +1,6 @@
+from typing import Optional
+
+
 SCHEMES = {'bibtex': {}, 'fulltext': {}}
 EXTENSIONS = {}
 
@@ -17,3 +20,16 @@ def file_handler(*extensions):
             EXTENSIONS[ext] = handler
         return handler
     return decorator
+
+
+def get_scheme(obj: str) -> Optional[str]:
+    """Extract the scheme prefix from an object string.
+
+    Returns:
+        Scheme name (e.g., 'doi', 'arxiv', 'isbn') or None if no scheme.
+    """
+    if ':' in obj:
+        scheme = obj.split(':', 1)[0]
+        if scheme in SCHEMES['bibtex']:
+            return scheme
+    return None

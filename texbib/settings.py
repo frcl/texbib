@@ -43,7 +43,7 @@ class SettingsSection:
             self.settings[setting] = config_section[setting]
 
     def read_from_env(self, prefix: str):
-        for setting_name, setting in self.settings.items():
+        for setting_name in self.settings:
             var_name = f'{prefix}_{setting_name}'.upper()
             if var_name in os.environ:
                 self.settings[setting_name] = os.environ[var_name]
@@ -61,7 +61,7 @@ def get_settings(config_path: Path):
         # .add_setting('test') \
         # .add_setting('bibdir', default=None)
     settings.add_section('fulltext') \
-        .add_setting('pdf_reader_cmd', default='xdg-open %%')
+        .add_setting('pdf_reader_cmd', default='xdg-open')
     settings.add_section('edit') \
         .add_setting('editor', default='')
     return settings.read_settings(config_path)

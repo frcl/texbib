@@ -11,7 +11,7 @@ from typing import List, Literal, Optional
 from .bibliography import Bibliography, _smart_case
 from .errors import FileNotFound, IdNotFound, InvalidName, ExitCode, UnkownResource
 from .parser import loads, dumps
-from .schemes import SCHEMES, EXTENSIONS
+from .schemes import SCHEMES, EXTENSIONS, get_scheme
 from .term_utils import tex2term
 from .utils import rm_tree
 
@@ -51,7 +51,7 @@ class commands(dict): # pylint: disable=invalid-name
 
 
 @commands.register
-def add(objects: List[str]) -> ExitCode:
+def add(objects: List[str], fulltext: bool = False, overwrite: bool = False) -> ExitCode:
     """Add some resources to the active bibliography
 
     Supports multiple input formats:
@@ -64,45 +64,67 @@ def add(objects: List[str]) -> ExitCode:
     Multiple sources can be combined in a single command."""
     exit_code = ExitCode.SUCCESS
     for obj in objects:
-        if obj == '-':
-            # Read BibTeX from stdin
-            bibtex = sys.stdin.read()
-            if not bibtex.strip():
-                print('-: no data from stdin', file=sys.stderr)
-                exit_code = ExitCode.GENERAL_ERROR
-                continue
-        else:
-            parts = obj.split(':')
-            if len(parts) > 1 and parts[0] in SCHEMES['bibtex']:
-                bibtex = SCHEMES['bibtex'][parts[0]](obj)
-            elif re.match('^[0-9-]*$', obj):
-                bibtex = SCHEMES['bibtex']['isbn'](obj)
-            else:
-                path = Path(obj)
+        scheme = get_scheme(obj)
 
-                if not path.exists():
-                    exc = FileNotFound(path)
-                    commands.run.error(str(exc))
-                    exit_code = exc.exit_code
-                    continue
+        if len(obj) > 10 and re.match(r'^[0-9-]+$', obj):
+            scheme = 'isbn'
 
-                if path.suffix not in EXTENSIONS:
-                    exc = UnkownResource(str(path))
-                    commands.run.error(str(exc))
-                    exit_code = exc.exit_code
-                    continue
+        bibtex = SCHEMES['bibtex'][scheme](obj) if scheme else _get_bibtex_from_file(obj)
 
-                bibtex = EXTENSIONS[path.suffix](path)
-
-        if bibtex:
-            with commands.run.open('w') as bib:
-                added_keys = bib.update(bibtex)
-            print('\n'.join(added_keys))
-        else:
-            print(f'{obj}: no data', file=sys.stderr)
+        if not bibtex:
+            if obj == '-':
+                commands.run.error('-: no data from stdin')
             exit_code = ExitCode.GENERAL_ERROR
+            continue
+
+        entries = loads(bibtex)
+
+        if not overwrite:
+            with commands.run.open('r') as bib:
+                _fix_ids(entries, bib)
+
+        with commands.run.open('w') as bib:
+            added_keys = bib.update(entries)
+
+        if fulltext and scheme and scheme in SCHEMES['fulltext']:
+            pdf_path = commands.run.active_files_path / f'{added_keys[0]}.pdf'
+            try:
+                SCHEMES['fulltext'][scheme](obj, pdf_path)
+            except Exception as exc:
+                commands.run.error(f"Failed to download fulltext: {exc}")
+
+        print(added_keys[0])
 
     return exit_code
+
+
+def _get_bibtex_from_file(obj: str) -> Optional[str]:
+    """Get bibtex string from an object."""
+    if obj == '-':
+        return sys.stdin.read() or None
+
+    path = Path(obj)
+    if not path.exists():
+        commands.run.error(str(FileNotFound(path)))
+        return None
+
+    if path.suffix not in EXTENSIONS:
+        commands.run.error(str(UnkownResource(str(path))))
+        return None
+
+    return EXTENSIONS[path.suffix](path)
+
+
+def _fix_ids(entries: dict, bib: Bibliography) -> None:
+    for entry_id in entries:
+        if entry_id in bib:
+            if not commands.run.ask(f"Entry '{entry_id}' exists. Overwrite?", default=False):
+                new_id = commands.run.ask_string(
+                    f"Enter new ID for '{entry_id}'",
+                    validator=lambda x: bool(x.strip()) and ' ' not in x
+                )
+                entries[new_id] = entries.pop(entry_id)
+                entries[new_id]['ID'] = new_id
 
 
 @commands.register
